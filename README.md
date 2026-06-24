@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Little Logic Lab
+
+Little Logic Lab is an educational platform for children aged 3–7 that develops logical reasoning through carefully designed activities. The experience is calm and Montessori-inspired — no streaks, scores, or addictive mechanics.
+
+## Current Prototype
+
+**Picture Sudoku** for ages 3–4 is playable now:
+
+- 2×2 and 3×3 grids with emoji picture cards
+- Easy, Medium, and Hard difficulties
+- Drag-and-drop + tap-to-place interaction
+- Calm educational feedback
+- Session completion screen with healthy stopping points
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm test` | Run sudoku engine unit tests |
+| `npm run lint` | ESLint |
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/                    # Next.js pages
+features/sudoku/        # Sudoku engine + UI components
+docs/GameIdeas.md       # Living backlog of all activity ideas
+docs/picture-sudoku.md  # Engine API + theme swap guide
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Design Principles
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Calm learning over screen time maximization
+- Confidence building with gentle feedback
+- No gamification (no XP, coins, streaks, leaderboards)
+- Short meaningful sessions (5–10 minutes)
+- Large touch targets, soft colors, minimal animation
 
-## Deploy on Vercel
+## Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- ShadCN UI
+- @dnd-kit (drag-and-drop)
+- Vitest (engine tests)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Documentation
+
+- [Game Ideas Backlog](docs/GameIdeas.md) — all planned activities
+- [Picture Sudoku Guide](docs/picture-sudoku.md) — engine API and custom art swap
