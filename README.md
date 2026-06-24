@@ -2,6 +2,14 @@
 
 Little Logic Lab is an educational platform for children aged 3–7 that develops logical reasoning through carefully designed activities. The experience is calm and Montessori-inspired — no streaks, scores, or addictive mechanics.
 
+## Goals
+
+- Develop logical reasoning
+- Improve pattern recognition
+- Strengthen problem-solving abilities
+- Enhance concentration and memory
+- Make learning playful and engaging
+
 ## Current Prototype
 
 **Picture Sudoku** for ages 3–4 is playable now:
@@ -11,6 +19,19 @@ Little Logic Lab is an educational platform for children aged 3–7 that develop
 - Drag-and-drop + tap-to-place interaction
 - Calm educational feedback
 - Session completion screen with healthy stopping points
+
+## Planned Activities
+
+- Pattern Completion
+- Mini Sudoku
+- Shape Matching
+- Sequence Builder
+- Odd One Out
+- Memory Games
+- Visual Reasoning Puzzles
+- Sorting & Classification
+- Maze Challenges
+- Number & Logic Games
 
 ## Getting Started
 
