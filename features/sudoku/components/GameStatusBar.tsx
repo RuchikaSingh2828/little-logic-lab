@@ -1,6 +1,6 @@
 "use client";
 
-import { Leaf, Lightbulb, RotateCcw } from "lucide-react";
+import { Lightbulb, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Difficulty, GridSize } from "../types/sudoku.types";
 
@@ -45,7 +45,6 @@ export function GameStatusBar({
           <span>
             {filledCount} / {totalEmpty}
           </span>
-          <Leaf className="h-3.5 w-3.5 text-emerald-500" />
         </div>
         <div className="flex items-center gap-1 text-sm text-muted-foreground">
           <span className="font-medium text-foreground/80">{difficultyLabel}</span>
@@ -54,7 +53,6 @@ export function GameStatusBar({
               <span key={i}>{i < stars ? "★" : "☆"}</span>
             ))}
           </span>
-          <Leaf className="h-3 w-3 text-emerald-400" />
         </div>
       </div>
 

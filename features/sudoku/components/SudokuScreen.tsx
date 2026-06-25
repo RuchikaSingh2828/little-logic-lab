@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -12,8 +12,10 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { ArrowLeft, Leaf, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SUDOKU_MODE_CONFIG } from "../config/sudokuModes";
+import { SudokuLogo } from "./SudokuLogo";
 import { CompletionDialog } from "./CompletionDialog";
 import { FeedbackToast } from "./FeedbackToast";
 import { GameStatusBar } from "./GameStatusBar";
@@ -29,9 +31,10 @@ import { playCorrectSound, playWrongSound } from "../lib/sounds";
 import { trackSessionMinute } from "../lib/sessionStorage";
 import { isGridSizeUnlocked } from "../lib/progressStorage";
 import type { PlacementResult } from "../types/placement.types";
-import type { Difficulty, GridSize, Puzzle, Symbol } from "../types/sudoku.types";
+import type { Difficulty, GridSize, Puzzle, Symbol, SudokuMode } from "../types/sudoku.types";
 
 interface SudokuScreenProps {
+  mode: SudokuMode;
   size: GridSize;
   difficulty: Difficulty;
   initialPuzzle: Puzzle;
@@ -50,15 +53,19 @@ function parseTrayIndex(id: string): number | null {
 }
 
 export function SudokuScreen({
+  mode,
   size,
   difficulty,
   initialPuzzle,
 }: SudokuScreenProps) {
   const router = useRouter();
+  const modeConfig = SUDOKU_MODE_CONFIG[mode];
   const {
     puzzle,
     board,
     tray,
+    placedCount,
+    totalToPlace,
     feedback,
     selectedPiece,
     isCelebrating,
@@ -84,15 +91,13 @@ export function SudokuScreen({
   const [showHintDialog, setShowHintDialog] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
-  const filledCount = useMemo(
-    () =>
-      puzzle.emptyCells.filter(({ row, col }) => board[row][col] !== null)
-        .length,
-    [board, puzzle.emptyCells]
-  );
-  const totalEmpty = puzzle.emptyCells.length;
-  const remainingEmpty = totalEmpty - filledCount;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const remainingEmpty = totalToPlace - placedCount;
 
   useEffect(() => {
     const stored = localStorage.getItem("lll_sound_enabled");
@@ -100,10 +105,10 @@ export function SudokuScreen({
   }, []);
 
   useEffect(() => {
-    if (!isGridSizeUnlocked(size)) {
+    if (!isGridSizeUnlocked(mode, size)) {
       router.replace("/");
     }
-  }, [size, router]);
+  }, [mode, size, router]);
 
   useEffect(() => {
     const interval = setInterval(trackSessionMinute, 60_000);
@@ -173,18 +178,21 @@ export function SudokuScreen({
       const { active, over } = event;
       if (!over) return;
 
-      const trayIndex = parseTrayIndex(String(active.id));
-      if (trayIndex === null) return;
-
-      const symbol = tray[trayIndex];
-      if (!symbol) return;
-
       if (over.id === "tray") return;
 
       const cell = parseCellId(String(over.id));
       if (!cell) return;
 
-      tryPlaceSymbol(cell.row, cell.col, symbol);
+      const draggedSymbol =
+        (active.data.current?.symbol as Symbol | undefined) ??
+        (() => {
+          const trayIndex = parseTrayIndex(String(active.id));
+          return trayIndex !== null ? tray[trayIndex] : undefined;
+        })();
+
+      if (!draggedSymbol) return;
+
+      tryPlaceSymbol(cell.row, cell.col, draggedSymbol);
     },
     [tryPlaceSymbol, tray]
   );
@@ -214,10 +222,28 @@ export function SudokuScreen({
     reset();
   };
 
+  if (!isMounted) {
+    return (
+      <div className="flex min-h-full flex-col overflow-x-hidden bg-gradient-to-b from-[#FFFBEB] via-[#FEF9EE] to-[#ECFDF5]">
+        <div className="mx-auto flex min-h-full w-full max-w-lg flex-1 flex-col items-center justify-center px-4 py-12">
+          <p className="text-sm font-medium text-emerald-700">Loading puzzle…</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <DndContext
       sensors={sensors}
       onDragStart={(event) => {
+        const symbolFromData = event.active.data.current?.symbol as
+          | Symbol
+          | undefined;
+        if (symbolFromData) {
+          setActiveDragSymbol(symbolFromData);
+          return;
+        }
+
         const trayIndex = parseTrayIndex(String(event.active.id));
         if (trayIndex !== null) {
           setActiveDragSymbol(tray[trayIndex] ?? null);
@@ -227,9 +253,9 @@ export function SudokuScreen({
       onDragCancel={() => setActiveDragSymbol(null)}
     >
       <div className="relative flex min-h-full flex-col overflow-x-hidden bg-gradient-to-b from-[#FFFBEB] via-[#FEF9EE] to-[#ECFDF5]">
-        <div className="relative mx-auto flex min-h-full w-full max-w-lg flex-1 flex-col overflow-x-hidden px-4 pb-0 pt-3 sm:px-5 sm:pt-4">
-          <header className="mb-3">
-            <div className="mb-3 flex items-start justify-between gap-2">
+        <div className="relative mx-auto flex min-h-full w-full max-w-lg flex-1 flex-col overflow-x-hidden px-4 pb-0 pt-2 sm:px-5 sm:pt-3">
+          <header className="mb-2">
+            <div className="flex items-start gap-2">
               <Link href="/" className="shrink-0">
                 <Button
                   size="icon"
@@ -240,6 +266,17 @@ export function SudokuScreen({
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               </Link>
+
+              <div className="min-w-0 flex-1 text-center">
+                <h1 className="flex items-center justify-center gap-1.5 text-lg font-bold leading-tight text-amber-950 sm:text-xl">
+                  <SudokuLogo className="h-5 w-5 sm:h-6 sm:w-6" />
+                  {modeConfig.title}
+                  <SudokuLogo className="h-5 w-5 sm:h-6 sm:w-6" />
+                </h1>
+                <p className="mt-0.5 px-1 text-xs leading-snug text-amber-900/65 sm:text-sm">
+                  {modeConfig.instructions}
+                </p>
+              </div>
 
               <Button
                 size="icon"
@@ -255,22 +292,11 @@ export function SudokuScreen({
                 )}
               </Button>
             </div>
-
-            <div className="text-center">
-              <h1 className="flex items-center justify-center gap-1.5 text-xl font-bold text-amber-950 sm:text-2xl">
-                <Leaf className="h-4 w-4 text-emerald-500" aria-hidden />
-                Picture Sudoku
-                <Leaf className="h-4 w-4 text-emerald-500" aria-hidden />
-              </h1>
-              <p className="mt-1 px-2 text-sm leading-snug text-amber-900/65">
-                Look carefully. Every row and column needs all the pictures!
-              </p>
-            </div>
           </header>
 
           <GameStatusBar
-            filledCount={filledCount}
-            totalEmpty={totalEmpty}
+            filledCount={placedCount}
+            totalEmpty={totalToPlace}
             gridSize={size}
             difficulty={difficulty}
             remainingEmpty={remainingEmpty}
@@ -279,7 +305,7 @@ export function SudokuScreen({
             onResetClick={() => setShowResetDialog(true)}
           />
 
-          <div className="flex flex-1 flex-col items-center justify-center gap-5 py-2">
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 py-1.5">
             <PuzzleGrid
               board={board}
               givens={puzzle.givens}

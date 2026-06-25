@@ -9,8 +9,8 @@ export function HomePage() {
     <div className="flex min-h-dvh w-full flex-col bg-cream">
       <HomeTopNav />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 pt-4 sm:px-6 sm:pb-8 sm:pt-6 lg:px-8 lg:pb-10">
-        <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-28 pt-5 sm:px-6 sm:pb-10 sm:pt-8 lg:px-8">
+        <div className="flex flex-col gap-8 sm:gap-10 lg:gap-12">
           <HeroBanner />
           <ChallengeSection />
           <WhyLogicBanner />

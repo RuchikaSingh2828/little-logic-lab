@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { EncouragementFooter } from "@/components/EncouragementFooter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getTotalGamesPlayedAllModes } from "@/features/sudoku/lib/progressStorage";
 import {
   getSessionMinutes,
   getSkillsPracticed,
@@ -18,10 +19,12 @@ const DEFAULT_SKILLS = [
 ];
 
 export default function ParentsPage() {
+  const [totalGamesPlayed, setTotalGamesPlayed] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [skills, setSkills] = useState<string[]>([]);
 
   useEffect(() => {
+    setTotalGamesPlayed(getTotalGamesPlayedAllModes());
     setMinutes(getSessionMinutes());
     const practiced = getSkillsPracticed();
     setSkills(practiced.length > 0 ? practiced : []);
@@ -46,6 +49,20 @@ export default function ParentsPage() {
       </header>
 
       <div className="flex flex-col gap-6">
+        <Card className="rounded-2xl border-sage/40 bg-white">
+          <CardHeader>
+            <CardTitle className="text-lg">Games Played</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-semibold text-foreground">
+              {totalGamesPlayed}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Sudoku puzzles completed across all age groups.
+            </p>
+          </CardContent>
+        </Card>
+
         <Card className="rounded-2xl border-sage/40 bg-white">
           <CardHeader>
             <CardTitle className="text-lg">Skills Practiced</CardTitle>
@@ -77,10 +94,6 @@ export default function ParentsPage() {
             </p>
           </CardContent>
         </Card>
-
-        <p className="text-center text-sm text-muted-foreground">
-          This is a preview — full progress tracking coming later.
-        </p>
       </div>
 
       <EncouragementFooter refreshKey="parents" className="mt-8" />

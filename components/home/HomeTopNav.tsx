@@ -6,12 +6,9 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  DESKTOP_NAV,
-  MOBILE_MENU_NAV,
-  isNavActive,
-} from "./home-data";
+import { DESKTOP_NAV, MOBILE_MENU_NAV, isNavActive } from "./home-data";
 import { ProfileMenu } from "./ProfileMenu";
+import { SudokuLogo } from "@/features/sudoku/components/SudokuLogo";
 
 export function HomeTopNav() {
   const pathname = usePathname();
@@ -19,14 +16,14 @@ export function HomeTopNav() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-cream/95 backdrop-blur-sm">
-        <div className="mx-auto grid max-w-5xl grid-cols-[auto_1fr_auto] items-center gap-2 px-4 py-3 sm:px-6 lg:flex lg:gap-4 lg:px-8">
+      <header className="sticky top-0 z-40 w-full border-b border-[#EBE7E0]/60 bg-cream/95 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           {/* Mobile: hamburger */}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setMenuOpen((open) => !open)}
-            className="h-10 w-10 rounded-xl bg-white text-[#3D3A36] shadow-sm hover:bg-white/90 lg:hidden"
+            className="h-10 w-10 shrink-0 rounded-xl bg-white text-[#3D3A36] shadow-sm hover:bg-white/90 lg:hidden"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
           >
             {menuOpen ? (
@@ -36,13 +33,13 @@ export function HomeTopNav() {
             )}
           </Button>
 
-          {/* Logo */}
+          {/* Logo — centered on mobile, left on desktop */}
           <Link
             href="/"
-            className="flex min-w-0 items-center justify-center gap-1.5 lg:justify-start lg:gap-2.5"
+            className="flex min-w-0 flex-1 items-center justify-center gap-2 lg:flex-none lg:justify-start"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-sage/30 text-base lg:h-9 lg:w-9 lg:text-lg">
-              🪴
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sage/30">
+              <SudokuLogo className="h-6 w-6" />
             </span>
             <span className="truncate text-sm font-bold text-[#2D2A26] sm:text-base">
               Little Logic Lab
@@ -70,13 +67,12 @@ export function HomeTopNav() {
             })}
           </nav>
 
-          {/* Profile */}
-          <ProfileMenu compact className="lg:hidden" />
-          <ProfileMenu className="hidden lg:block" />
+          {/* Profile avatar */}
+          <ProfileMenu className="shrink-0" />
         </div>
       </header>
 
-      {/* Mobile menu overlay */}
+      {/* Mobile slide-out menu */}
       {menuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
@@ -87,10 +83,12 @@ export function HomeTopNav() {
           />
           <nav className="absolute left-0 top-0 h-full w-72 max-w-[85vw] bg-cream px-5 py-6 shadow-xl">
             <div className="mb-8 flex items-center gap-2.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sage/30 text-xl">
-                🪴
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sage/30">
+                <SudokuLogo className="h-7 w-7" />
               </span>
-              <p className="text-base font-bold text-[#2D2A26]">Little Logic Lab</p>
+              <p className="text-base font-bold text-[#2D2A26]">
+                Little Logic Lab
+              </p>
             </div>
 
             <ul className="flex flex-col gap-1">

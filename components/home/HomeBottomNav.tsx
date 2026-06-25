@@ -10,7 +10,7 @@ export function HomeBottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#EBE7E0] bg-white/95 backdrop-blur-sm lg:hidden">
-      <ul className="mx-auto flex max-w-lg items-center justify-around px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2">
+      <ul className="mx-auto flex max-w-lg items-center justify-around px-2 pb-[max(0.625rem,env(safe-area-inset-bottom))] pt-2.5">
         {MOBILE_BOTTOM_NAV.map((item) => {
           const isActive = isNavActive(pathname, item.href);
 

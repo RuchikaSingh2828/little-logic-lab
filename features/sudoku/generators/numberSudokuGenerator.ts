@@ -1,12 +1,26 @@
-// TODO: Number Sudoku generator for ages 6–7 (6×6 and 9×9 grids)
+import type { Difficulty, GridSize, Puzzle } from "../types/sudoku.types";
+import { createLatinPuzzle } from "./createLatinPuzzle";
 
-export interface NumberSudokuGeneratorOptions {
-  size: 6 | 9;
-  difficulty: "easy" | "medium" | "hard";
+function numberSymbols(size: GridSize): string[] {
+  return Array.from({ length: size }, (_, index) => String(index + 1));
 }
 
-export function generateNumberPuzzle(
-  _opts: NumberSudokuGeneratorOptions
-): never {
-  throw new Error("Number Sudoku generator not yet implemented");
+export function generateNumberPuzzle(opts: {
+  size: GridSize;
+  difficulty: Difficulty;
+}): Puzzle {
+  return createLatinPuzzle({
+    mode: "number",
+    size: opts.size,
+    difficulty: opts.difficulty,
+    themeId: "numbers",
+    symbols: numberSymbols(opts.size),
+  });
+}
+
+export function generateNextNumberPuzzle(current: Puzzle): Puzzle {
+  return generateNumberPuzzle({
+    size: current.size,
+    difficulty: current.difficulty,
+  });
 }

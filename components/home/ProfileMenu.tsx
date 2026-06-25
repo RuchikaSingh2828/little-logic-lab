@@ -7,11 +7,10 @@ import { cn } from "@/lib/utils";
 import { PROFILE_MENU_ITEMS } from "./home-data";
 
 interface ProfileMenuProps {
-  compact?: boolean;
   className?: string;
 }
 
-export function ProfileMenu({ compact = false, className }: ProfileMenuProps) {
+export function ProfileMenu({ className }: ProfileMenuProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -36,30 +35,13 @@ export function ProfileMenu({ compact = false, className }: ProfileMenuProps) {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className={cn(
-          "flex items-center rounded-2xl bg-white shadow-[0_2px_8px_rgba(45,42,38,0.06)] transition-shadow hover:shadow-[0_4px_12px_rgba(45,42,38,0.08)]",
-          compact ? "gap-0.5 px-1.5 py-1" : "gap-2 px-2.5 py-1.5"
-        )}
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-[0_2px_8px_rgba(45,42,38,0.08)] transition-shadow hover:shadow-[0_4px_12px_rgba(45,42,38,0.12)] sm:h-11 sm:w-11"
         aria-label="Profile menu"
         aria-expanded={open}
       >
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky/40 text-base sm:h-9 sm:w-9">
           👦
         </span>
-        {!compact && (
-          <div className="hidden text-left sm:block">
-            <p className="text-sm font-semibold text-[#2D2A26]">Hi, Aarav!</p>
-            <p className="text-[11px] text-[#8A857D]">Explorer</p>
-          </div>
-        )}
-        <ChevronDown
-          className={cn(
-            "text-[#9CA3AF] transition-transform",
-            compact ? "h-3.5 w-3.5" : "h-4 w-4",
-            open && "rotate-180"
-          )}
-          strokeWidth={2.5}
-        />
       </button>
 
       {open && (

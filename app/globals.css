@@ -158,4 +158,18 @@
   .animate-cell-shake {
     animation: cell-shake 0.45s ease-in-out;
   }
+
+  .animate-mascot-float {
+    animation: mascot-float 3.5s ease-in-out infinite;
+  }
+}
+
+@keyframes mascot-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
 }

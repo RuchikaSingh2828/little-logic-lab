@@ -34,16 +34,17 @@ export function GridCell({
 
   const cellSizeClass =
     gridSize >= 5
-      ? "h-11 w-11 sm:h-12 sm:w-12"
+      ? "h-12 w-12 sm:h-[3.25rem] sm:w-[3.25rem]"
       : gridSize >= 4
-        ? "h-14 w-14 sm:h-16 sm:w-16"
-        : "h-[4.5rem] w-[4.5rem] sm:h-20 sm:w-20";
+        ? "h-[4.25rem] w-[4.25rem] sm:h-[4.75rem] sm:w-[4.75rem]"
+        : "h-[4.75rem] w-[4.75rem] sm:h-[5.25rem] sm:w-[5.25rem]";
 
-  const cardSize = gridSize >= 5 ? "sm" : gridSize >= 4 ? "sm" : "md";
+  const cardSize = gridSize >= 5 ? "sm" : "md";
 
   return (
-    <button
+    <div
       ref={setNodeRef}
+      role="gridcell"
       onClick={() => {
         if (isGiven) return;
         if (symbol && onRemove) {
@@ -52,6 +53,18 @@ export function GridCell({
           onTap();
         }
       }}
+      onKeyDown={(event) => {
+        if (isGiven) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          if (symbol && onRemove) {
+            onRemove();
+          } else if (onTap) {
+            onTap();
+          }
+        }
+      }}
+      tabIndex={isGiven ? -1 : 0}
       className={cn(
         "relative flex items-center justify-center border border-gray-200/80 bg-white transition-colors",
         cellSizeClass,
@@ -70,7 +83,6 @@ export function GridCell({
             ? `Cell row ${row + 1} column ${col + 1}, tap to remove`
             : `Empty cell row ${row + 1} column ${col + 1}, drop piece here`
       }
-      disabled={isGiven}
     >
       {isEmpty && !isGiven && (
         <Flower2
@@ -88,6 +100,6 @@ export function GridCell({
           )}
         />
       )}
-    </button>
+    </div>
   );
 }

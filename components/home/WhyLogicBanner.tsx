@@ -5,8 +5,8 @@ const WHY_LOGIC_COPY =
 
 function PuzzlePiecesIllustration() {
   return (
-    <div className="shrink-0" aria-hidden>
-      <div className="relative h-12 w-16 sm:h-14 sm:w-20">
+    <div className="hidden shrink-0 sm:block" aria-hidden>
+      <div className="relative h-14 w-20">
         <span className="absolute left-0 top-0 text-2xl text-[#9B8EC4]">🧩</span>
         <span className="absolute right-0 top-1 rotate-12 text-xl text-[#88B04B] opacity-90">
           🧩
@@ -24,17 +24,17 @@ function PuzzlePiecesIllustration() {
 
 export function WhyLogicBanner() {
   return (
-    <section className="mt-6 overflow-hidden rounded-[1.25rem] border border-amber-200/40 bg-[#FFF8E8] px-4 py-4 shadow-[0_2px_12px_rgba(45,42,38,0.04)] sm:mt-10 sm:rounded-3xl sm:px-6 sm:py-5">
-      <div className="flex items-start gap-3 sm:items-center sm:gap-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-200/90 sm:h-11 sm:w-11">
+    <section className="overflow-hidden rounded-3xl border border-amber-200/40 bg-[#FFF8E8] px-5 py-5 shadow-[0_2px_16px_rgba(45,42,38,0.04)] sm:px-6 sm:py-6">
+      <div className="flex items-center gap-4">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-200/90">
           <Lightbulb className="h-5 w-5 text-amber-700" strokeWidth={2.5} />
         </div>
 
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-bold text-[#3D3220] sm:text-base">
+          <h2 className="text-base font-bold text-[#3D3220] sm:text-lg">
             Why logic puzzles?
           </h2>
-          <p className="mt-0.5 text-xs leading-relaxed text-[#7A6B52] sm:text-sm">
+          <p className="mt-1 text-sm leading-relaxed text-[#7A6B52]">
             {WHY_LOGIC_COPY}
           </p>
         </div>

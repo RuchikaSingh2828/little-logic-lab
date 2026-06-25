@@ -3,19 +3,31 @@ import { cn } from "@/lib/utils";
 interface SproutMascotProps {
   size?: "sm" | "md" | "lg";
   className?: string;
+  animated?: boolean;
 }
 
 const sizeMap = {
-  sm: { container: "h-16 w-16", plant: "h-10 w-10", pot: "h-2.5 w-7" },
-  md: { container: "h-20 w-20", plant: "h-12 w-12", pot: "h-3 w-8" },
-  lg: { container: "h-44 w-44 sm:h-48 sm:w-48", plant: "h-24 w-24 sm:h-28 sm:w-28", pot: "h-3 w-10" },
+  sm: { container: "h-14 w-14", plant: "h-9 w-9", pot: "h-2 w-6", leaf: "h-2 w-2" },
+  md: { container: "h-[5.5rem] w-[5.5rem]", plant: "h-14 w-14", pot: "h-2.5 w-8", leaf: "h-2.5 w-2.5" },
+  lg: { container: "h-36 w-36 sm:h-40 sm:w-40", plant: "h-20 w-20 sm:h-24 sm:w-24", pot: "h-3 w-10", leaf: "h-3 w-3" },
 };
 
-export function SproutMascot({ size = "md", className }: SproutMascotProps) {
+export function SproutMascot({
+  size = "md",
+  className,
+  animated = true,
+}: SproutMascotProps) {
   const s = sizeMap[size];
 
   return (
-    <div className={cn("relative shrink-0", s.container, className)}>
+    <div
+      className={cn(
+        "relative shrink-0",
+        s.container,
+        animated && "animate-mascot-float",
+        className
+      )}
+    >
       <div
         className="absolute inset-0 rounded-full opacity-90"
         aria-hidden
@@ -27,39 +39,49 @@ export function SproutMascot({ size = "md", className }: SproutMascotProps) {
         }}
       />
 
-      {size === "lg" && (
-        <>
-          <span className="absolute left-[18%] top-[20%] text-sm opacity-70">✦</span>
-          <span className="absolute right-[20%] top-[15%] text-xs text-violet-400">✦</span>
-          <span className="absolute left-[30%] bottom-[25%] text-xs text-amber-400">✦</span>
-          <span className="absolute right-[28%] bottom-[20%] text-sm text-emerald-400">✦</span>
-          <span className="absolute left-[45%] top-[12%] text-[10px] text-sky-400">●</span>
-          <span className="absolute right-[38%] top-[30%] text-[10px] text-rose-300">●</span>
-        </>
-      )}
-
-      {size !== "lg" && (
-        <>
-          <span className="absolute right-[15%] top-[20%] text-[7px] text-violet-400">✦</span>
-          <span className="absolute left-[10%] top-[35%] text-[6px] text-amber-500">●</span>
-          <span className="absolute right-[22%] bottom-[30%] text-[7px] text-emerald-500">✦</span>
-        </>
-      )}
+      <span className="absolute left-[12%] top-[18%] text-[8px] text-amber-400 opacity-80 sm:text-[10px]">
+        ✦
+      </span>
+      <span className="absolute right-[14%] top-[22%] text-[7px] text-violet-400 sm:text-[9px]">
+        ✦
+      </span>
+      <span className="absolute bottom-[28%] left-[8%] text-[7px] text-emerald-400 sm:text-[8px]">
+        ●
+      </span>
+      <span className="absolute bottom-[32%] right-[10%] text-[8px] text-rose-300 sm:text-[9px]">
+        ✦
+      </span>
 
       <div className="absolute bottom-0 left-1/2 flex -translate-x-1/2 flex-col items-center">
         <div
           className={cn(
-            "relative flex items-center justify-center rounded-full bg-gradient-to-b from-emerald-300 to-emerald-500 shadow-sm",
+            "relative flex items-center justify-center rounded-full bg-gradient-to-b from-emerald-300 to-emerald-500 shadow-[0_4px_12px_rgba(34,120,80,0.2)]",
             s.plant
           )}
         >
-          <div className="absolute top-[28%] flex w-6 justify-between px-0.5">
-            <span className="h-1 w-1 rounded-full bg-emerald-900/70" />
-            <span className="h-1 w-1 rounded-full bg-emerald-900/70" />
+          {/* Eyes */}
+          <div className="absolute top-[30%] flex w-[42%] justify-between">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-900/75 sm:h-2 sm:w-2" />
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-900/75 sm:h-2 sm:w-2" />
           </div>
-          <span className="absolute bottom-[28%] h-0.5 w-2.5 rounded-full bg-emerald-900/50" />
-          <span className="absolute -top-1.5 left-1.5 h-2.5 w-2.5 rotate-[-25deg] rounded-full bg-emerald-400" />
-          <span className="absolute -top-2 right-1.5 h-3 w-3 rotate-[20deg] rounded-full bg-emerald-300" />
+          {/* Rosy cheeks */}
+          <span className="absolute left-[18%] top-[48%] h-1.5 w-2 rounded-full bg-rose-300/50 sm:h-2 sm:w-2.5" />
+          <span className="absolute right-[18%] top-[48%] h-1.5 w-2 rounded-full bg-rose-300/50 sm:h-2 sm:w-2.5" />
+          {/* Happy smile */}
+          <span className="absolute bottom-[24%] block h-1 w-3.5 rounded-b-full border-b-2 border-emerald-900/55 sm:h-1.5 sm:w-4" />
+          {/* Leaves */}
+          <span
+            className={cn(
+              "absolute -top-1 left-1.5 rotate-[-28deg] rounded-full bg-emerald-400",
+              s.leaf
+            )}
+          />
+          <span
+            className={cn(
+              "absolute -top-1.5 right-1 rotate-[22deg] rounded-full bg-emerald-300",
+              s.leaf
+            )}
+          />
         </div>
         <div className={cn("rounded-b-md bg-amber-700/85", s.pot)} />
       </div>

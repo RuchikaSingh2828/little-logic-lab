@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { SudokuMode } from "@/features/sudoku/types/sudoku.types";
 import {
   Home,
   Lightbulb,
@@ -51,11 +52,14 @@ export interface GridSizeTier {
   description: string;
 }
 
-export const PICTURE_GRID_TIERS: GridSizeTier[] = [
+export const GRID_TIERS: GridSizeTier[] = [
   { size: 3, label: "3×3 Grid", description: "Great for beginners" },
-  { size: 4, label: "4×4 Grid", description: "A little bigger — more pictures!" },
+  { size: 4, label: "4×4 Grid", description: "A little bigger — more to place!" },
   { size: 5, label: "5×5 Grid", description: "Big grid — about 10 spaces to fill" },
 ];
+
+/** @deprecated Use GRID_TIERS */
+export const PICTURE_GRID_TIERS = GRID_TIERS;
 
 export interface AgeGroup {
   id: string;
@@ -63,6 +67,8 @@ export interface AgeGroup {
   description: string;
   icon: string;
   active: boolean;
+  mode: SudokuMode;
+  hrefPrefix: string;
   recommended?: boolean;
   difficulties?: Difficulty[];
   timeEstimate?: string;
@@ -75,6 +81,8 @@ export const AGE_GROUPS: AgeGroup[] = [
     description: "Picture Sudoku with friendly images",
     icon: "🦁",
     active: true,
+    mode: "picture",
+    hrefPrefix: "/sudoku/picture",
     recommended: true,
     difficulties: ["easy", "medium", "hard"],
     timeEstimate: "5–15 minutes",
@@ -84,14 +92,22 @@ export const AGE_GROUPS: AgeGroup[] = [
     label: "Ages 5–6",
     description: "Shapes, colors, and simple symbols",
     icon: "🐘",
-    active: false,
+    active: true,
+    mode: "shape",
+    hrefPrefix: "/sudoku/shape",
+    difficulties: ["easy", "medium", "hard"],
+    timeEstimate: "5–15 minutes",
   },
   {
     id: "6-7",
     label: "Ages 6–7",
     description: "Classic beginner number sudoku",
     icon: "🦛",
-    active: false,
+    active: true,
+    mode: "number",
+    hrefPrefix: "/sudoku/number",
+    difficulties: ["easy", "medium", "hard"],
+    timeEstimate: "5–15 minutes",
   },
 ];
 

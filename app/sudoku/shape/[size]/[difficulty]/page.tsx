@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { SudokuScreen } from "@/features/sudoku/components/SudokuScreen";
-import { generatePicturePuzzle } from "@/features/sudoku/generators/pictureSudokuGenerator";
+import { generateShapePuzzle } from "@/features/sudoku/generators/shapeSudokuGenerator";
 import type { Difficulty, GridSize } from "@/features/sudoku/types/sudoku.types";
 
 interface PageProps {
@@ -10,7 +10,7 @@ interface PageProps {
 const VALID_SIZES: GridSize[] = [3, 4, 5];
 const VALID_DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard"];
 
-export default async function PictureSudokuPage({ params }: PageProps) {
+export default async function ShapeSudokuPage({ params }: PageProps) {
   const { size: sizeStr, difficulty } = await params;
   const size = parseInt(sizeStr, 10) as GridSize;
 
@@ -21,15 +21,15 @@ export default async function PictureSudokuPage({ params }: PageProps) {
     notFound();
   }
 
-  const initialPuzzle = generatePicturePuzzle({
+  const initialPuzzle = generateShapePuzzle({
     size,
     difficulty: difficulty as Difficulty,
   });
 
   return (
     <SudokuScreen
-      key={`picture-${size}-${difficulty}-${initialPuzzle.id}`}
-      mode="picture"
+      key={`shape-${size}-${difficulty}-${initialPuzzle.id}`}
+      mode="shape"
       size={size}
       difficulty={difficulty as Difficulty}
       initialPuzzle={initialPuzzle}

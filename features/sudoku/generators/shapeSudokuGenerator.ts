@@ -1,12 +1,34 @@
-// TODO: Shape Sudoku generator for ages 5–6 (4×4 grids with shapes/colors)
+import {
+  getNextShapeTheme,
+  getShapeThemeById,
+  SHAPE_THEMES,
+} from "../levels/shapeThemes";
+import type { Difficulty, GridSize, Puzzle } from "../types/sudoku.types";
+import { createLatinPuzzle } from "./createLatinPuzzle";
 
-export interface ShapeSudokuGeneratorOptions {
-  size: 4;
-  difficulty: "easy" | "medium" | "hard";
+export function generateShapePuzzle(opts: {
+  size: GridSize;
+  difficulty: Difficulty;
+  themeId?: string;
+}): Puzzle {
+  const theme = opts.themeId
+    ? getShapeThemeById(opts.themeId)
+    : SHAPE_THEMES[Math.floor(Math.random() * SHAPE_THEMES.length)];
+
+  return createLatinPuzzle({
+    mode: "shape",
+    size: opts.size,
+    difficulty: opts.difficulty,
+    themeId: theme.id,
+    symbols: theme.symbols,
+  });
 }
 
-export function generateShapePuzzle(
-  _opts: ShapeSudokuGeneratorOptions
-): never {
-  throw new Error("Shape Sudoku generator not yet implemented");
+export function generateNextShapePuzzle(current: Puzzle): Puzzle {
+  const nextTheme = getNextShapeTheme(current.themeId);
+  return generateShapePuzzle({
+    size: current.size,
+    difficulty: current.difficulty,
+    themeId: nextTheme.id,
+  });
 }

@@ -1,9 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { generateLatinSquare } from "../generators/latinSquare";
 import { generatePicturePuzzle } from "../generators/pictureSudokuGenerator";
+import { generateShapePuzzle } from "../generators/shapeSudokuGenerator";
+import { generateNumberPuzzle } from "../generators/numberSudokuGenerator";
 import { getEmptyCellCount } from "../levels/difficultyConfig";
+import { countPlacedCells } from "../lib/boardProgress";
 import {
   getSolveCount,
+  getTotalGamesPlayed,
   isGridSizeUnlocked,
   recordPuzzleSolve,
   solvesUntilUnlock,
@@ -64,6 +68,7 @@ describe("pictureSudokuGenerator", () => {
     const puzzle = generatePicturePuzzle({ size: 3, difficulty: "easy" });
     expect(isValidLatinSquare(puzzle.solution)).toBe(true);
     expect(puzzle.symbols).toHaveLength(3);
+    expect(puzzle.mode).toBe("picture");
   });
 
   it("produces expected empty cell counts", () => {
@@ -86,7 +91,47 @@ describe("pictureSudokuGenerator", () => {
   });
 });
 
+describe("shapeSudokuGenerator", () => {
+  it("generates puzzle with valid solution", () => {
+    const puzzle = generateShapePuzzle({ size: 4, difficulty: "easy" });
+    expect(isValidLatinSquare(puzzle.solution)).toBe(true);
+    expect(puzzle.symbols).toHaveLength(4);
+    expect(puzzle.mode).toBe("shape");
+  });
+});
+
+describe("numberSudokuGenerator", () => {
+  it("generates puzzle with numeric symbols", () => {
+    const puzzle = generateNumberPuzzle({ size: 5, difficulty: "medium" });
+    expect(isValidLatinSquare(puzzle.solution)).toBe(true);
+    expect(puzzle.symbols).toEqual(["1", "2", "3", "4", "5"]);
+    expect(puzzle.mode).toBe("number");
+  });
+});
+
+describe("boardProgress", () => {
+  it("counts placed cells from givens and board", () => {
+    const puzzle = generatePicturePuzzle({ size: 3, difficulty: "hard" });
+    const board = puzzle.givens.map((row) => [...row]);
+
+    expect(countPlacedCells(puzzle.givens, board, puzzle.size)).toEqual({
+      placed: 0,
+      total: 6,
+    });
+
+    const { row, col } = puzzle.emptyCells[0];
+    board[row][col] = puzzle.solution[row][col];
+
+    expect(countPlacedCells(puzzle.givens, board, puzzle.size)).toEqual({
+      placed: 1,
+      total: 6,
+    });
+  });
+});
+
 describe("progressStorage", () => {
+  const mode = "picture" as const;
+
   beforeEach(() => {
     vi.stubGlobal("window", { dispatchEvent: vi.fn() });
     vi.stubGlobal("localStorage", {
@@ -101,29 +146,58 @@ describe("progressStorage", () => {
   });
 
   it("unlocks 4x4 after 2 solves on 3x3", () => {
-    expect(isGridSizeUnlocked(4)).toBe(false);
-    expect(solvesUntilUnlock(4)).toBe(2);
+    expect(isGridSizeUnlocked(mode, 4)).toBe(false);
+    expect(solvesUntilUnlock(mode, 4)).toBe(2);
 
-    recordPuzzleSolve(3);
-    expect(isGridSizeUnlocked(4)).toBe(false);
-    expect(solvesUntilUnlock(4)).toBe(1);
+    recordPuzzleSolve(mode, 3);
+    expect(isGridSizeUnlocked(mode, 4)).toBe(false);
+    expect(solvesUntilUnlock(mode, 4)).toBe(1);
 
-    const unlocked = recordPuzzleSolve(3);
+    const unlocked = recordPuzzleSolve(mode, 3);
     expect(unlocked).toBe(4);
-    expect(isGridSizeUnlocked(4)).toBe(true);
-    expect(getSolveCount(3)).toBe(2);
+    expect(isGridSizeUnlocked(mode, 4)).toBe(true);
+    expect(getSolveCount(mode, 3)).toBe(2);
   });
 
   it("unlocks 5x5 after 2 solves on 4x4", () => {
-    recordPuzzleSolve(3);
-    recordPuzzleSolve(3);
+    recordPuzzleSolve(mode, 3);
+    recordPuzzleSolve(mode, 3);
 
-    recordPuzzleSolve(4);
-    expect(isGridSizeUnlocked(5)).toBe(false);
+    recordPuzzleSolve(mode, 4);
+    expect(isGridSizeUnlocked(mode, 5)).toBe(false);
 
-    const unlocked = recordPuzzleSolve(4);
+    const unlocked = recordPuzzleSolve(mode, 4);
     expect(unlocked).toBe(5);
-    expect(isGridSizeUnlocked(5)).toBe(true);
+    expect(isGridSizeUnlocked(mode, 5)).toBe(true);
+  });
+
+  it("tracks total games played and ignores duplicate puzzle ids", () => {
+    recordPuzzleSolve(mode, 3, "puzzle-a");
+    recordPuzzleSolve(mode, 3, "puzzle-a");
+    recordPuzzleSolve(mode, 3, "puzzle-b");
+
+    expect(getTotalGamesPlayed(mode)).toBe(2);
+    expect(getSolveCount(mode, 3)).toBe(2);
+  });
+
+  it("keeps progress separate per mode", () => {
+    recordPuzzleSolve("picture", 3);
+    recordPuzzleSolve("shape", 3);
+    recordPuzzleSolve("shape", 3);
+
+    expect(getSolveCount("picture", 3)).toBe(1);
+    expect(getSolveCount("shape", 3)).toBe(2);
+    expect(isGridSizeUnlocked("shape", 4)).toBe(true);
+    expect(isGridSizeUnlocked("picture", 4)).toBe(false);
+  });
+
+  it("recovers from malformed progress data in localStorage", () => {
+    localStorage.setItem("lll_puzzle_progress_picture", "{}");
+
+    recordPuzzleSolve(mode, 3, "puzzle-c");
+
+    expect(getSolveCount(mode, 3)).toBe(1);
+    expect(getTotalGamesPlayed(mode)).toBe(1);
   });
 });
 
