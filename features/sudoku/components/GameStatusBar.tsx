@@ -2,11 +2,12 @@
 
 import { Leaf, Lightbulb, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Difficulty } from "../types/sudoku.types";
+import type { Difficulty, GridSize } from "../types/sudoku.types";
 
 interface GameStatusBarProps {
   filledCount: number;
   totalEmpty: number;
+  gridSize: GridSize;
   difficulty: Difficulty;
   remainingEmpty: number;
   onHintClick: () => void;
@@ -23,6 +24,7 @@ function difficultyStars(difficulty: Difficulty): number {
 export function GameStatusBar({
   filledCount,
   totalEmpty,
+  gridSize,
   difficulty,
   remainingEmpty,
   onHintClick,
@@ -38,7 +40,7 @@ export function GameStatusBar({
       <div className="min-w-0 flex-1 space-y-0.5">
         <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
           <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-            Level
+            {gridSize}×{gridSize}
           </span>
           <span>
             {filledCount} / {totalEmpty}

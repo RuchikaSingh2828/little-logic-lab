@@ -43,6 +43,20 @@ export const PROFILE_MENU_ITEMS: NavItem[] = [
 
 export type Difficulty = "easy" | "medium" | "hard";
 
+export type PictureGridSize = 3 | 4 | 5;
+
+export interface GridSizeTier {
+  size: PictureGridSize;
+  label: string;
+  description: string;
+}
+
+export const PICTURE_GRID_TIERS: GridSizeTier[] = [
+  { size: 3, label: "3×3 Grid", description: "Great for beginners" },
+  { size: 4, label: "4×4 Grid", description: "A little bigger — more pictures!" },
+  { size: 5, label: "5×5 Grid", description: "Big grid — about 10 spaces to fill" },
+];
+
 export interface AgeGroup {
   id: string;
   label: string;
@@ -51,7 +65,6 @@ export interface AgeGroup {
   active: boolean;
   recommended?: boolean;
   difficulties?: Difficulty[];
-  defaultSize?: number;
   timeEstimate?: string;
 }
 
@@ -64,8 +77,7 @@ export const AGE_GROUPS: AgeGroup[] = [
     active: true,
     recommended: true,
     difficulties: ["easy", "medium", "hard"],
-    defaultSize: 3,
-    timeEstimate: "5–10 minutes",
+    timeEstimate: "5–15 minutes",
   },
   {
     id: "5-6",

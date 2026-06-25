@@ -49,10 +49,27 @@ function permutations<T>(arr: T[]): T[][] {
   return result;
 }
 
+function generateCyclicLatinSquare(size: number, symbols: Symbol[]): Symbol[][] {
+  const syms = symbols.slice(0, size);
+  const grid: Symbol[][] = Array.from({ length: size }, (_, row) =>
+    Array.from({ length: size }, (_, col) => syms[(row + col) % size])
+  );
+
+  const rowOrder = shuffle(Array.from({ length: size }, (_, i) => i));
+  const shuffledRows = rowOrder.map((row) => grid[row]);
+
+  const colOrder = shuffle(Array.from({ length: size }, (_, i) => i));
+  return shuffledRows.map((row) => colOrder.map((col) => row[col]));
+}
+
 export function generateLatinSquare(
   size: number,
   symbols: Symbol[]
 ): Symbol[][] {
+  if (size >= 4) {
+    return generateCyclicLatinSquare(size, symbols);
+  }
+
   const grid: Symbol[][] = Array.from({ length: size }, () =>
     Array<Symbol>(size).fill("")
   );

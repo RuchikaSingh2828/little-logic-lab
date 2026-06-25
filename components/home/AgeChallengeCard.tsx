@@ -3,20 +3,38 @@
 import Link from "next/link";
 import { Clock, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePuzzleProgress } from "@/features/sudoku/hooks/usePuzzleProgress";
 import {
   DIFFICULTY_STYLES,
+  PICTURE_GRID_TIERS,
   type AgeGroup,
   type Difficulty,
+  type PictureGridSize,
 } from "./home-data";
 
 function DifficultyPill({
   difficulty,
   href,
+  disabled,
 }: {
   difficulty: Difficulty;
   href: string;
+  disabled?: boolean;
 }) {
   const style = DIFFICULTY_STYLES[difficulty];
+
+  if (disabled) {
+    return (
+      <span
+        className={cn(
+          "flex min-w-0 flex-1 cursor-not-allowed items-center justify-center rounded-full border-2 px-3 py-2 text-xs font-semibold capitalize opacity-40 sm:text-sm",
+          style.className
+        )}
+      >
+        {style.label}
+      </span>
+    );
+  }
 
   return (
     <Link href={href} className="min-w-0 flex-1">
@@ -56,7 +74,82 @@ function AnimalIllustration({
   );
 }
 
+function GridSizeRow({
+  size,
+  label,
+  description,
+  difficulties,
+  unlocked,
+  solvesNeeded,
+  isNew,
+}: {
+  size: PictureGridSize;
+  label: string;
+  description: string;
+  difficulties: Difficulty[];
+  unlocked: boolean;
+  solvesNeeded: number;
+  isNew?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-2xl border p-3.5 sm:p-4",
+        unlocked
+          ? "border-sage/30 bg-[#FAFCF8]"
+          : "border-[#E8E4DD] bg-[#FAF8F5]/80"
+      )}
+    >
+      <div className="mb-2.5 flex items-start justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2">
+            <h4
+              className={cn(
+                "text-sm font-bold sm:text-base",
+                unlocked ? "text-[#2D2A26]" : "text-[#9A958D]"
+              )}
+            >
+              {label}
+            </h4>
+            {isNew && unlocked && (
+              <span className="rounded-full bg-sage px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+                New
+              </span>
+            )}
+          </div>
+          <p
+            className={cn(
+              "mt-0.5 text-xs",
+              unlocked ? "text-[#5A7A4A]" : "text-[#B0AAA2]"
+            )}
+          >
+            {unlocked
+              ? description
+              : `Solve ${solvesNeeded} more puzzle${solvesNeeded === 1 ? "" : "s"} to unlock`}
+          </p>
+        </div>
+        {!unlocked && (
+          <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[#C4BEB6]" strokeWidth={2.5} />
+        )}
+      </div>
+
+      <div className="flex gap-2">
+        {difficulties.map((difficulty) => (
+          <DifficultyPill
+            key={difficulty}
+            difficulty={difficulty}
+            href={`/sudoku/picture/${size}/${difficulty}`}
+            disabled={!unlocked}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function ActiveAgeCard({ group }: { group: AgeGroup }) {
+  const { isUnlocked, solvesUntilUnlock, unlockedSizes } = usePuzzleProgress();
+
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl border-2 border-sage/60 bg-white p-5 shadow-[0_4px_20px_rgba(45,42,38,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:border-sage hover:shadow-[0_8px_28px_rgba(45,42,38,0.1)] sm:rounded-3xl sm:p-6">
       {group.recommended && (
@@ -73,14 +166,27 @@ export function ActiveAgeCard({ group }: { group: AgeGroup }) {
         <p className="mt-1 text-sm text-[#5A7A4A]">{group.description}</p>
       </div>
 
-      <div className="mt-5 flex gap-2 sm:mt-6">
-        {group.difficulties?.map((difficulty) => (
-          <DifficultyPill
-            key={difficulty}
-            difficulty={difficulty}
-            href={`/sudoku/picture/${group.defaultSize}/${difficulty}`}
-          />
-        ))}
+      <div className="mt-5 flex flex-col gap-3 sm:mt-6">
+        {PICTURE_GRID_TIERS.map((tier) => {
+          const unlocked = isUnlocked(tier.size);
+          const justUnlocked =
+            unlocked &&
+            tier.size > 3 &&
+            unlockedSizes[unlockedSizes.length - 1] === tier.size;
+
+          return (
+            <GridSizeRow
+              key={tier.size}
+              size={tier.size}
+              label={tier.label}
+              description={tier.description}
+              difficulties={group.difficulties ?? ["easy", "medium", "hard"]}
+              unlocked={unlocked}
+              solvesNeeded={solvesUntilUnlock(tier.size)}
+              isNew={justUnlocked}
+            />
+          );
+        })}
       </div>
 
       {group.timeEstimate && (

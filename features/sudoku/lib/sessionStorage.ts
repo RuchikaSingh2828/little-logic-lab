@@ -1,3 +1,6 @@
+import { recordPuzzleSolve } from "./progressStorage";
+import type { GridSize } from "../types/sudoku.types";
+
 const SESSION_KEY = "lll_session_minutes";
 const SKILLS_KEY = "lll_skills_practiced";
 
@@ -30,8 +33,9 @@ export function getSkillsPracticed(): string[] {
   }
 }
 
-export function markPuzzleComplete(): void {
+export function markPuzzleComplete(size: GridSize): GridSize | null {
   markSkillPracticed("Pattern Recognition");
   markSkillPracticed("Logic");
   markSkillPracticed("Concentration");
+  return recordPuzzleSolve(size);
 }

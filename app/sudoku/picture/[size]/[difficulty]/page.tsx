@@ -7,7 +7,7 @@ interface PageProps {
   params: Promise<{ size: string; difficulty: string }>;
 }
 
-const VALID_SIZES: GridSize[] = [2, 3];
+const VALID_SIZES: GridSize[] = [2, 3, 4, 5];
 const VALID_DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard"];
 
 export default async function SudokuPage({ params }: PageProps) {

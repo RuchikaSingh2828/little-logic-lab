@@ -20,7 +20,7 @@ export function PictureCard({
   const isImage = symbol.startsWith("/");
 
   const sizeClasses = {
-    sm: "h-12 w-12 text-2xl",
+    sm: "h-10 w-10 text-xl sm:h-12 sm:w-12 sm:text-2xl",
     md: "h-16 w-16 text-4xl sm:h-20 sm:w-20 sm:text-5xl",
     lg: "h-20 w-20 text-5xl sm:h-24 sm:w-24 sm:text-6xl",
   };

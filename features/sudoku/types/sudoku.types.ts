@@ -1,4 +1,4 @@
-export type GridSize = 2 | 3;
+export type GridSize = 2 | 3 | 4 | 5;
 export type Difficulty = "easy" | "medium" | "hard";
 export type Symbol = string;
 

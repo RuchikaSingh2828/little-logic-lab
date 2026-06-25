@@ -9,15 +9,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { GridSize } from "../types/sudoku.types";
 
 interface CompletionDialogProps {
   open: boolean;
+  newlyUnlockedSize: GridSize | null;
   onTryAnother: () => void;
   onFinish: () => void;
 }
 
+function unlockMessage(size: GridSize): string {
+  if (size === 4) {
+    return "You unlocked 4×4 puzzles! A few more pictures to place — still just rows and columns.";
+  }
+  return "You unlocked 5×5 puzzles! Bigger grid, about 10 spaces to fill — you're getting really good!";
+}
+
 export function CompletionDialog({
   open,
+  newlyUnlockedSize,
   onTryAnother,
   onFinish,
 }: CompletionDialogProps) {
@@ -39,6 +49,12 @@ export function CompletionDialog({
         </DialogHeader>
 
         <div className="space-y-4 text-center text-base text-foreground">
+          {newlyUnlockedSize && (
+            <p className="rounded-2xl bg-sage/20 px-4 py-3 text-sm font-medium leading-relaxed text-[#3D5A32]">
+              🎉 {unlockMessage(newlyUnlockedSize)}
+            </p>
+          )}
+
           <p>You practiced:</p>
           <ul className="space-y-2 text-left">
             <li className="flex items-center gap-2">

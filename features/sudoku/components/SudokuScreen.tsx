@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   DndContext,
   DragEndEvent,
@@ -26,6 +27,7 @@ import { useSudokuGame } from "../hooks/useSudokuGame";
 import { fireCelebrationConfetti } from "../lib/confetti";
 import { playCorrectSound, playWrongSound } from "../lib/sounds";
 import { trackSessionMinute } from "../lib/sessionStorage";
+import { isGridSizeUnlocked } from "../lib/progressStorage";
 import type { PlacementResult } from "../types/placement.types";
 import type { Difficulty, GridSize, Puzzle, Symbol } from "../types/sudoku.types";
 
@@ -52,6 +54,7 @@ export function SudokuScreen({
   difficulty,
   initialPuzzle,
 }: SudokuScreenProps) {
+  const router = useRouter();
   const {
     puzzle,
     board,
@@ -60,6 +63,7 @@ export function SudokuScreen({
     selectedPiece,
     isCelebrating,
     showCompletion,
+    newlyUnlockedSize,
     canHint,
     placeSymbol,
     removeSymbol,
@@ -94,6 +98,12 @@ export function SudokuScreen({
     const stored = localStorage.getItem("lll_sound_enabled");
     if (stored === "true") setSoundEnabled(true);
   }, []);
+
+  useEffect(() => {
+    if (!isGridSizeUnlocked(size)) {
+      router.replace("/");
+    }
+  }, [size, router]);
 
   useEffect(() => {
     const interval = setInterval(trackSessionMinute, 60_000);
@@ -261,6 +271,7 @@ export function SudokuScreen({
           <GameStatusBar
             filledCount={filledCount}
             totalEmpty={totalEmpty}
+            gridSize={size}
             difficulty={difficulty}
             remainingEmpty={remainingEmpty}
             canHint={canHint}
@@ -316,6 +327,7 @@ export function SudokuScreen({
 
       <CompletionDialog
         open={showCompletion}
+        newlyUnlockedSize={newlyUnlockedSize}
         onTryAnother={handleTryAnother}
         onFinish={dismissCompletion}
       />

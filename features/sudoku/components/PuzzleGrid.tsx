@@ -42,6 +42,7 @@ export function PuzzleGrid({
               col={colIndex}
               symbol={symbol}
               isGiven={givens[rowIndex][colIndex] !== null}
+              gridSize={size}
               isSelected={
                 selectedPiece !== null &&
                 givens[rowIndex][colIndex] === null &&
