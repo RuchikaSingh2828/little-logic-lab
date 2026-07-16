@@ -33,6 +33,10 @@ Little Logic Lab is an educational platform for children aged 3–7 that develop
 - Maze Challenges
 - Number & Logic Games
 
+## Live
+
+Play at [https://sudokid.in](https://sudokid.in).
+
 ## Getting Started
 
 ```bash
