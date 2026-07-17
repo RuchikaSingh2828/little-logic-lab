@@ -1,4 +1,4 @@
-# Little Logic Lab — Game Ideas
+# Sudokid — Game Ideas
 
 > Living backlog. Add ideas here immediately — never rely on memory or chat history.
 

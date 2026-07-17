@@ -42,7 +42,7 @@ export function HomeTopNav() {
               <SudokuLogo className="h-6 w-6" />
             </span>
             <span className="truncate text-sm font-bold text-[#2D2A26] sm:text-base">
-              Little Logic Lab
+              Sudokid
             </span>
           </Link>
 
@@ -87,7 +87,7 @@ export function HomeTopNav() {
                 <SudokuLogo className="h-7 w-7" />
               </span>
               <p className="text-base font-bold text-[#2D2A26]">
-                Little Logic Lab
+                Sudokid
               </p>
             </div>
 

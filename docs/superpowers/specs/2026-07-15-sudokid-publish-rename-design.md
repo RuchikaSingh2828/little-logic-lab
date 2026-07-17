@@ -89,11 +89,11 @@ Search the codebase for remaining “Little Logic Lab” / `little-logic-lab` st
 
 ## Success criteria
 
-- [ ] App UI and metadata show **Sudokid**, not Little Logic Lab
-- [ ] Local project folder is named `sudokid`
-- [ ] `https://sudokid.in` serves the production app
-- [ ] `http://sudokid.in` redirects to HTTPS
-- [ ] `www.sudokid.in` works (redirect or serve) as configured in Vercel
+- [x] App UI and metadata show **Sudokid**, not Little Logic Lab
+- [x] Local project folder is named `sudokid`
+- [x] `https://sudokid.in` serves the production app
+- [x] `http://sudokid.in` redirects to HTTPS
+- [x] `www.sudokid.in` works (redirect or serve) as configured in Vercel
 
 ## Testing
 
