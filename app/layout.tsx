@@ -10,7 +10,7 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Little Logic Lab",
+  title: "Sudokid",
   description:
     "Learn through play and puzzles — calm educational activities for children aged 3–7.",
 };

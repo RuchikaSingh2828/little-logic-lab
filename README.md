@@ -1,6 +1,10 @@
-# Little Logic Lab
+# Sudokid
 
-Little Logic Lab is an educational platform for children aged 3–7 that develops logical reasoning through carefully designed activities. The experience is calm and Montessori-inspired — no streaks, scores, or addictive mechanics.
+Sudokid is an educational platform for children aged 3–7 that develops logical reasoning through carefully designed activities. The experience is calm and Montessori-inspired — no streaks, scores, or addictive mechanics.
+
+## Live
+
+Play at [https://sudokid.in](https://sudokid.in).
 
 ## Goals
 
