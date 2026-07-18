@@ -30,7 +30,7 @@ function subscribe(callback: () => void) {
 function getServerSnapshot(mode: SudokuMode) {
   return JSON.stringify({
     mode,
-    unlocked: [3],
+    unlocked: [3, 4, 5],
     solves3: 0,
     solves4: 0,
     solves5: 0,

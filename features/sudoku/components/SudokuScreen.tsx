@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   DndContext,
   DragEndEvent,
@@ -15,7 +14,6 @@ import {
 import { ArrowLeft, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SUDOKU_MODE_CONFIG } from "../config/sudokuModes";
-import { SudokuLogo } from "./SudokuLogo";
 import { CompletionDialog } from "./CompletionDialog";
 import { FeedbackToast } from "./FeedbackToast";
 import { GameStatusBar } from "./GameStatusBar";
@@ -25,11 +23,11 @@ import { PieceTray } from "./PieceTray";
 import { PuzzleGrid } from "./PuzzleGrid";
 import { ResetDialog } from "./ResetDialog";
 import { SceneFooter } from "./SceneFooter";
+import { SudokuLogo } from "./SudokuLogo";
 import { useSudokuGame } from "../hooks/useSudokuGame";
 import { fireCelebrationConfetti } from "../lib/confetti";
 import { playCorrectSound, playWrongSound } from "../lib/sounds";
 import { trackSessionMinute } from "../lib/sessionStorage";
-import { isGridSizeUnlocked } from "../lib/progressStorage";
 import type { PlacementResult } from "../types/placement.types";
 import type { Difficulty, GridSize, Puzzle, Symbol, SudokuMode } from "../types/sudoku.types";
 
@@ -58,7 +56,6 @@ export function SudokuScreen({
   difficulty,
   initialPuzzle,
 }: SudokuScreenProps) {
-  const router = useRouter();
   const modeConfig = SUDOKU_MODE_CONFIG[mode];
   const {
     puzzle,
@@ -70,7 +67,6 @@ export function SudokuScreen({
     selectedPiece,
     isCelebrating,
     showCompletion,
-    newlyUnlockedSize,
     canHint,
     placeSymbol,
     removeSymbol,
@@ -103,12 +99,6 @@ export function SudokuScreen({
     const stored = localStorage.getItem("lll_sound_enabled");
     if (stored === "true") setSoundEnabled(true);
   }, []);
-
-  useEffect(() => {
-    if (!isGridSizeUnlocked(mode, size)) {
-      router.replace("/");
-    }
-  }, [mode, size, router]);
 
   useEffect(() => {
     const interval = setInterval(trackSessionMinute, 60_000);
@@ -353,7 +343,6 @@ export function SudokuScreen({
 
       <CompletionDialog
         open={showCompletion}
-        newlyUnlockedSize={newlyUnlockedSize}
         onTryAnother={handleTryAnother}
         onFinish={dismissCompletion}
       />

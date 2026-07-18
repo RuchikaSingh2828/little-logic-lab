@@ -8,6 +8,7 @@ import { countPlacedCells } from "../lib/boardProgress";
 import {
   getSolveCount,
   getTotalGamesPlayed,
+  getUnlockedGridSizes,
   isGridSizeUnlocked,
   recordPuzzleSolve,
   solvesUntilUnlock,
@@ -145,30 +146,20 @@ describe("progressStorage", () => {
     });
   });
 
-  it("unlocks 4x4 after 2 solves on 3x3", () => {
-    expect(isGridSizeUnlocked(mode, 4)).toBe(false);
-    expect(solvesUntilUnlock(mode, 4)).toBe(2);
-
-    recordPuzzleSolve(mode, 3);
-    expect(isGridSizeUnlocked(mode, 4)).toBe(false);
-    expect(solvesUntilUnlock(mode, 4)).toBe(1);
-
-    const unlocked = recordPuzzleSolve(mode, 3);
-    expect(unlocked).toBe(4);
+  it("treats 3x3, 4x4, and 5x5 as unlocked immediately", () => {
+    expect(isGridSizeUnlocked(mode, 3)).toBe(true);
     expect(isGridSizeUnlocked(mode, 4)).toBe(true);
-    expect(getSolveCount(mode, 3)).toBe(2);
+    expect(isGridSizeUnlocked(mode, 5)).toBe(true);
+    expect(solvesUntilUnlock(mode, 4)).toBe(0);
+    expect(getUnlockedGridSizes(mode)).toEqual([3, 4, 5]);
   });
 
-  it("unlocks 5x5 after 2 solves on 4x4", () => {
-    recordPuzzleSolve(mode, 3);
-    recordPuzzleSolve(mode, 3);
-
-    recordPuzzleSolve(mode, 4);
-    expect(isGridSizeUnlocked(mode, 5)).toBe(false);
-
-    const unlocked = recordPuzzleSolve(mode, 4);
-    expect(unlocked).toBe(5);
-    expect(isGridSizeUnlocked(mode, 5)).toBe(true);
+  it("records solves without emitting unlock events", () => {
+    expect(recordPuzzleSolve(mode, 3)).toBe(null);
+    expect(recordPuzzleSolve(mode, 3)).toBe(null);
+    expect(getSolveCount(mode, 3)).toBe(2);
+    expect(recordPuzzleSolve(mode, 4)).toBe(null);
+    expect(getSolveCount(mode, 4)).toBe(1);
   });
 
   it("tracks total games played and ignores duplicate puzzle ids", () => {
@@ -188,7 +179,7 @@ describe("progressStorage", () => {
     expect(getSolveCount("picture", 3)).toBe(1);
     expect(getSolveCount("shape", 3)).toBe(2);
     expect(isGridSizeUnlocked("shape", 4)).toBe(true);
-    expect(isGridSizeUnlocked("picture", 4)).toBe(false);
+    expect(isGridSizeUnlocked("picture", 4)).toBe(true);
   });
 
   it("recovers from malformed progress data in localStorage", () => {
