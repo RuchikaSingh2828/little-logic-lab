@@ -14,7 +14,6 @@ import {
 import { ArrowLeft, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SUDOKU_MODE_CONFIG } from "../config/sudokuModes";
-import { SudokidLogo } from "@/components/brand/SudokidLogo";
 import { CompletionDialog } from "./CompletionDialog";
 import { FeedbackToast } from "./FeedbackToast";
 import { GameStatusBar } from "./GameStatusBar";
@@ -24,6 +23,7 @@ import { PieceTray } from "./PieceTray";
 import { PuzzleGrid } from "./PuzzleGrid";
 import { ResetDialog } from "./ResetDialog";
 import { SceneFooter } from "./SceneFooter";
+import { SudokuLogo } from "./SudokuLogo";
 import { useSudokuGame } from "../hooks/useSudokuGame";
 import { fireCelebrationConfetti } from "../lib/confetti";
 import { playCorrectSound, playWrongSound } from "../lib/sounds";
@@ -259,9 +259,9 @@ export function SudokuScreen({
 
               <div className="min-w-0 flex-1 text-center">
                 <h1 className="flex items-center justify-center gap-1.5 text-lg font-bold leading-tight text-amber-950 sm:text-xl">
-                  <SudokidLogo variant="icon" className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <SudokuLogo className="h-5 w-5 sm:h-6 sm:w-6" />
                   {modeConfig.title}
-                  <SudokidLogo variant="icon" className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <SudokuLogo className="h-5 w-5 sm:h-6 sm:w-6" />
                 </h1>
                 <p className="mt-0.5 px-1 text-xs leading-snug text-amber-900/65 sm:text-sm">
                   {modeConfig.instructions}
