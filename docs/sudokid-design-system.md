@@ -7,6 +7,17 @@
 
 Use this image as the source for logo, icon, favicon, color, and typography decisions.
 
+**Home page wireframes (canonical UI layout):**
+
+| Viewport | File |
+|----------|------|
+| Desktop | [`docs/design-refs/home-wireframe.png`](design-refs/home-wireframe.png) |
+| Tablet landscape (~1024px) | [`docs/design-refs/home-wireframe-tablet-landscape.png`](design-refs/home-wireframe-tablet-landscape.png) |
+| Tablet portrait (~768px) | [`docs/design-refs/home-wireframe-tablet-portrait.png`](design-refs/home-wireframe-tablet-portrait.png) |
+| Mobile (~375px) | [`docs/design-refs/home-wireframe-mobile.png`](design-refs/home-wireframe-mobile.png) |
+
+When the user asks to use “the reference,” “the wireframe,” or match the home page design, use the wireframe for the **current viewport** as the source of truth for layout, cards, sidebar, icons, and visual hierarchy.
+
 ---
 
 ## Approach
@@ -195,9 +206,9 @@ Suggested naming:
 
 ## Implementation checklist (future)
 
-- [ ] Export logo/icon assets from brand reference (SVG + PNG sizes)
-- [ ] Add favicon and app icons to `public/`
-- [ ] Replace placeholder `SudokuLogo` with brand icon
+- [x] Export logo/icon assets from brand reference (SVG + favicon)
+- [x] Add favicon and app icons to `public/`
+- [x] Replace placeholder `SudokuLogo` with brand icon
 - [ ] Add Plus Jakarta Sans + Inter to `app/layout.tsx`
 - [ ] Define Tailwind/CSS tokens from palette above
 - [ ] Rename remaining “Little Logic Lab” strings to Sudokid (if any)
