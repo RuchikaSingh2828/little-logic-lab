@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   DndContext,
   DragEndEvent,
@@ -15,7 +14,7 @@ import {
 import { ArrowLeft, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SUDOKU_MODE_CONFIG } from "../config/sudokuModes";
-import { SudokuLogo } from "./SudokuLogo";
+import { SudokidLogo } from "@/components/brand/SudokidLogo";
 import { CompletionDialog } from "./CompletionDialog";
 import { FeedbackToast } from "./FeedbackToast";
 import { GameStatusBar } from "./GameStatusBar";
@@ -29,7 +28,6 @@ import { useSudokuGame } from "../hooks/useSudokuGame";
 import { fireCelebrationConfetti } from "../lib/confetti";
 import { playCorrectSound, playWrongSound } from "../lib/sounds";
 import { trackSessionMinute } from "../lib/sessionStorage";
-import { isGridSizeUnlocked } from "../lib/progressStorage";
 import type { PlacementResult } from "../types/placement.types";
 import type { Difficulty, GridSize, Puzzle, Symbol, SudokuMode } from "../types/sudoku.types";
 
@@ -58,7 +56,6 @@ export function SudokuScreen({
   difficulty,
   initialPuzzle,
 }: SudokuScreenProps) {
-  const router = useRouter();
   const modeConfig = SUDOKU_MODE_CONFIG[mode];
   const {
     puzzle,
@@ -70,7 +67,6 @@ export function SudokuScreen({
     selectedPiece,
     isCelebrating,
     showCompletion,
-    newlyUnlockedSize,
     canHint,
     placeSymbol,
     removeSymbol,
@@ -103,12 +99,6 @@ export function SudokuScreen({
     const stored = localStorage.getItem("lll_sound_enabled");
     if (stored === "true") setSoundEnabled(true);
   }, []);
-
-  useEffect(() => {
-    if (!isGridSizeUnlocked(mode, size)) {
-      router.replace("/");
-    }
-  }, [mode, size, router]);
 
   useEffect(() => {
     const interval = setInterval(trackSessionMinute, 60_000);
@@ -269,9 +259,9 @@ export function SudokuScreen({
 
               <div className="min-w-0 flex-1 text-center">
                 <h1 className="flex items-center justify-center gap-1.5 text-lg font-bold leading-tight text-amber-950 sm:text-xl">
-                  <SudokuLogo className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <SudokidLogo variant="icon" className="h-5 w-5 sm:h-6 sm:w-6" />
                   {modeConfig.title}
-                  <SudokuLogo className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <SudokidLogo variant="icon" className="h-5 w-5 sm:h-6 sm:w-6" />
                 </h1>
                 <p className="mt-0.5 px-1 text-xs leading-snug text-amber-900/65 sm:text-sm">
                   {modeConfig.instructions}
@@ -353,7 +343,6 @@ export function SudokuScreen({
 
       <CompletionDialog
         open={showCompletion}
-        newlyUnlockedSize={newlyUnlockedSize}
         onTryAnother={handleTryAnother}
         onFinish={dismissCompletion}
       />

@@ -13,7 +13,7 @@ import type { PlacementResult } from "../types/placement.types";
 import { generateNextNumberPuzzle } from "../generators/numberSudokuGenerator";
 import { generateNextPuzzle } from "../generators/pictureSudokuGenerator";
 import { generateNextShapePuzzle } from "../generators/shapeSudokuGenerator";
-import type { GridSize, Puzzle, Symbol } from "../types/sudoku.types";
+import type { Puzzle, Symbol } from "../types/sudoku.types";
 import { isSolved, isValidPlacement } from "../validators/sudokuValidator";
 
 const CELEBRATION_DELAY_MS = 1500;
@@ -66,9 +66,6 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
   const [feedback, setFeedback] = useState<GameFeedback | null>(null);
   const [selectedPiece, setSelectedPiece] = useState<Symbol | null>(null);
   const [showCompletion, setShowCompletion] = useState(false);
-  const [newlyUnlockedSize, setNewlyUnlockedSize] = useState<GridSize | null>(
-    null
-  );
   const [isCelebrating, setIsCelebrating] = useState(false);
   const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -129,8 +126,7 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
       const solved = isSolved(newBoard, puzzle.solution);
       if (solved) {
         setFeedback(null);
-        const unlocked = markPuzzleComplete(puzzle.mode, puzzle.size, puzzle.id);
-        setNewlyUnlockedSize(unlocked);
+        markPuzzleComplete(puzzle.mode, puzzle.size, puzzle.id);
         triggerCelebration();
       } else {
         setFeedback(getRandomCorrectFeedback());
@@ -175,8 +171,7 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     setFeedback(HINT_FEEDBACK);
 
     if (isSolved(newBoard, puzzle.solution)) {
-      const unlocked = markPuzzleComplete(puzzle.mode, puzzle.size, puzzle.id);
-      setNewlyUnlockedSize(unlocked);
+      markPuzzleComplete(puzzle.mode, puzzle.size, puzzle.id);
       triggerCelebration();
     }
 
@@ -190,7 +185,6 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     setFeedback(null);
     setShowCompletion(false);
     setIsCelebrating(false);
-    setNewlyUnlockedSize(null);
   }, [puzzle, clearCelebrationTimer]);
 
   const newPuzzle = useCallback(() => {
@@ -202,7 +196,6 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     setFeedback(null);
     setShowCompletion(false);
     setIsCelebrating(false);
-    setNewlyUnlockedSize(null);
   }, [puzzle, clearCelebrationTimer]);
 
   const selectPiece = useCallback((symbol: Symbol | null) => {
@@ -224,7 +217,6 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     isComplete,
     isCelebrating,
     showCompletion,
-    newlyUnlockedSize,
     placeSymbol,
     removeSymbol,
     canHint,
