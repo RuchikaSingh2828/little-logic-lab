@@ -1,14 +1,6 @@
 import type { GridSize, SudokuMode } from "../types/sudoku.types";
 import { getProgressKey } from "./progressKeys";
 
-export const UNLOCK_RULES: Record<
-  4 | 5,
-  { requiresSize: GridSize; solvesRequired: number }
-> = {
-  4: { requiresSize: 3, solvesRequired: 2 },
-  5: { requiresSize: 4, solvesRequired: 2 },
-};
-
 interface PuzzleProgress {
   solvesBySize: Partial<Record<GridSize, number>>;
   totalGamesPlayed: number;
@@ -88,18 +80,12 @@ export function getTotalGamesPlayed(mode: SudokuMode): number {
   return readProgress(mode).totalGamesPlayed;
 }
 
-export function isGridSizeUnlocked(mode: SudokuMode, size: GridSize): boolean {
-  if (size <= 3) return true;
-
-  const rule = UNLOCK_RULES[size as 4 | 5];
-  return getSolveCount(mode, rule.requiresSize) >= rule.solvesRequired;
+export function isGridSizeUnlocked(_mode: SudokuMode, size: GridSize): boolean {
+  return size >= 2 && size <= 5;
 }
 
-export function solvesUntilUnlock(mode: SudokuMode, size: GridSize): number {
-  if (size <= 3 || isGridSizeUnlocked(mode, size)) return 0;
-
-  const rule = UNLOCK_RULES[size as 4 | 5];
-  return Math.max(0, rule.solvesRequired - getSolveCount(mode, rule.requiresSize));
+export function solvesUntilUnlock(_mode: SudokuMode, _size: GridSize): number {
+  return 0;
 }
 
 export function recordPuzzleSolve(
@@ -122,24 +108,11 @@ export function recordPuzzleSolve(
   progress.lastRecordedPuzzleId = puzzleId ?? null;
   writeProgress(mode, progress);
 
-  const nextSize = (gridSize + 1) as GridSize;
-  if (nextSize !== 4 && nextSize !== 5) return null;
-
-  const rule = UNLOCK_RULES[nextSize];
-  const requiredSolves = progress.solvesBySize[rule.requiresSize] ?? 0;
-
-  if (requiredSolves === rule.solvesRequired) {
-    return nextSize;
-  }
-
   return null;
 }
 
-export function getUnlockedGridSizes(mode: SudokuMode): GridSize[] {
-  const sizes: GridSize[] = [3];
-  if (isGridSizeUnlocked(mode, 4)) sizes.push(4);
-  if (isGridSizeUnlocked(mode, 5)) sizes.push(5);
-  return sizes;
+export function getUnlockedGridSizes(_mode: SudokuMode): GridSize[] {
+  return [3, 4, 5];
 }
 
 export function getTotalGamesPlayedAllModes(): number {
