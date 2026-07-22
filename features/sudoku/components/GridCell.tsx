@@ -70,10 +70,10 @@ export function GridCell({
         cellSizeClass,
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-inset",
         isGiven && "cursor-default bg-white",
-        !isGiven && isEmpty && "cursor-pointer border-dashed border-emerald-300/80 bg-emerald-50/30",
+        !isGiven && isEmpty && "cursor-pointer border-dashed border-[#C5D4C0] bg-[#F7FAF5]",
         !isGiven && !isEmpty && "cursor-pointer hover:bg-emerald-50/40",
         isOver && !isGiven && "border-emerald-400 bg-emerald-100/50",
-        isSelected && !isGiven && isEmpty && "border-emerald-500 bg-emerald-50/60",
+        isSelected && !isGiven && isEmpty && "border-[#65B741] bg-emerald-50/70",
         isShaking && "animate-cell-shake border-rose-300 bg-rose-50/50"
       )}
       aria-label={
@@ -86,7 +86,7 @@ export function GridCell({
     >
       {isEmpty && !isGiven && (
         <Flower2
-          className="pointer-events-none absolute h-6 w-6 text-emerald-200/60"
+          className="pointer-events-none absolute h-5 w-5 text-[#D5E5D0]/80 sm:h-6 sm:w-6"
           aria-hidden
         />
       )}

@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { SUDOKU_MODE_CONFIG } from "../config/sudokuModes";
 import { CompletionDialog } from "./CompletionDialog";
 import { FeedbackToast } from "./FeedbackToast";
+import { GameActions } from "./GameActions";
 import { GameStatusBar } from "./GameStatusBar";
 import { HintDialog } from "./HintDialog";
 import { PictureCard } from "./PictureCard";
@@ -23,7 +24,7 @@ import { PieceTray } from "./PieceTray";
 import { PuzzleGrid } from "./PuzzleGrid";
 import { ResetDialog } from "./ResetDialog";
 import { SceneFooter } from "./SceneFooter";
-import { SudokuLogo } from "./SudokuLogo";
+import { SudokidLogo } from "@/components/brand/SudokidLogo";
 import { useSudokuGame } from "../hooks/useSudokuGame";
 import { fireCelebrationConfetti } from "../lib/confetti";
 import { playCorrectSound, playWrongSound } from "../lib/sounds";
@@ -44,8 +45,8 @@ function parseCellId(id: string): { row: number; col: number } | null {
   return { row: parseInt(match[1], 10), col: parseInt(match[2], 10) };
 }
 
-function parseTrayIndex(id: string): number | null {
-  const match = id.match(/^tray-piece-(\d+)$/);
+function parseTrayGroupIndex(id: string): number | null {
+  const match = id.match(/^tray-group-(\d+)$/);
   if (!match) return null;
   return parseInt(match[1], 10);
 }
@@ -60,7 +61,7 @@ export function SudokuScreen({
   const {
     puzzle,
     board,
-    tray,
+    trayGroups,
     placedCount,
     totalToPlace,
     feedback,
@@ -176,15 +177,17 @@ export function SudokuScreen({
       const draggedSymbol =
         (active.data.current?.symbol as Symbol | undefined) ??
         (() => {
-          const trayIndex = parseTrayIndex(String(active.id));
-          return trayIndex !== null ? tray[trayIndex] : undefined;
+          const groupIndex = parseTrayGroupIndex(String(active.id));
+          return groupIndex !== null
+            ? trayGroups[groupIndex]?.symbol
+            : undefined;
         })();
 
       if (!draggedSymbol) return;
 
       tryPlaceSymbol(cell.row, cell.col, draggedSymbol);
     },
-    [tryPlaceSymbol, tray]
+    [tryPlaceSymbol, trayGroups]
   );
 
   const handleCellTap = useCallback(
@@ -234,9 +237,9 @@ export function SudokuScreen({
           return;
         }
 
-        const trayIndex = parseTrayIndex(String(event.active.id));
-        if (trayIndex !== null) {
-          setActiveDragSymbol(tray[trayIndex] ?? null);
+        const groupIndex = parseTrayGroupIndex(String(event.active.id));
+        if (groupIndex !== null) {
+          setActiveDragSymbol(trayGroups[groupIndex]?.symbol ?? null);
         }
       }}
       onDragEnd={handleDragEnd}
@@ -244,41 +247,37 @@ export function SudokuScreen({
     >
       <div className="relative flex min-h-full flex-col overflow-x-hidden bg-gradient-to-b from-[#FFFBEB] via-[#FEF9EE] to-[#ECFDF5]">
         <div className="relative mx-auto flex min-h-full w-full max-w-lg flex-1 flex-col overflow-x-hidden px-4 pb-0 pt-2 sm:px-5 sm:pt-3">
-          <header className="mb-2">
-            <div className="flex items-start gap-2">
+          <header className="mb-1.5">
+            <div className="flex items-center gap-2">
               <Link href="/" className="shrink-0">
                 <Button
                   size="icon"
                   variant="outline"
-                  className="h-10 w-10 rounded-full border-0 bg-white text-emerald-600 shadow-md hover:bg-white/90"
+                  className="h-9 w-9 rounded-full border-0 bg-white text-emerald-600 shadow-sm hover:bg-white/90"
                   aria-label="Back to home"
                 >
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-4 w-4" />
                 </Button>
               </Link>
 
               <div className="min-w-0 flex-1 text-center">
-                <h1 className="flex items-center justify-center gap-1.5 text-lg font-bold leading-tight text-amber-950 sm:text-xl">
-                  <SudokuLogo className="h-5 w-5 sm:h-6 sm:w-6" />
+                <h1 className="flex items-center justify-center gap-1.5 text-base font-bold leading-tight text-[#5C4033] sm:text-lg">
+                  <SudokidLogo variant="icon" className="h-5 w-5" />
                   {modeConfig.title}
-                  <SudokuLogo className="h-5 w-5 sm:h-6 sm:w-6" />
                 </h1>
-                <p className="mt-0.5 px-1 text-xs leading-snug text-amber-900/65 sm:text-sm">
-                  {modeConfig.instructions}
-                </p>
               </div>
 
               <Button
                 size="icon"
                 onClick={toggleSound}
-                className="h-10 w-10 shrink-0 rounded-full border-0 bg-violet-400 text-white shadow-md hover:bg-violet-500"
+                className="h-9 w-9 shrink-0 rounded-full border-0 bg-violet-400 text-white shadow-sm hover:bg-violet-500"
                 aria-label={soundEnabled ? "Turn sound off" : "Turn sound on"}
                 aria-pressed={soundEnabled}
               >
                 {soundEnabled ? (
-                  <Volume2 className="h-5 w-5" />
+                  <Volume2 className="h-4 w-4" />
                 ) : (
-                  <VolumeX className="h-5 w-5" />
+                  <VolumeX className="h-4 w-4" />
                 )}
               </Button>
             </div>
@@ -289,13 +288,9 @@ export function SudokuScreen({
             totalEmpty={totalToPlace}
             gridSize={size}
             difficulty={difficulty}
-            remainingEmpty={remainingEmpty}
-            canHint={canHint}
-            onHintClick={() => setShowHintDialog(true)}
-            onResetClick={() => setShowResetDialog(true)}
           />
 
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 py-1.5">
+          <div className="flex flex-1 flex-col items-center justify-center gap-2.5 py-1">
             <PuzzleGrid
               board={board}
               givens={puzzle.givens}
@@ -307,9 +302,17 @@ export function SudokuScreen({
             />
 
             <PieceTray
-              pieces={tray}
+              groups={trayGroups}
               selectedPiece={selectedPiece}
               onPieceTap={handlePieceTap}
+            />
+
+            <GameActions
+              remainingEmpty={remainingEmpty}
+              canHint={canHint}
+              onHint={() => setShowHintDialog(true)}
+              onReset={() => setShowResetDialog(true)}
+              onNext={newPuzzle}
             />
           </div>
 

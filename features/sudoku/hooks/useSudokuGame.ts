@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   getRandomCorrectFeedback,
   HINT_FEEDBACK,
@@ -13,6 +13,7 @@ import type { PlacementResult } from "../types/placement.types";
 import { generateNextNumberPuzzle } from "../generators/numberSudokuGenerator";
 import { generateNextPuzzle } from "../generators/pictureSudokuGenerator";
 import { generateNextShapePuzzle } from "../generators/shapeSudokuGenerator";
+import { buildTray, buildTrayGroups } from "../lib/trayGroups";
 import type { Puzzle, Symbol } from "../types/sudoku.types";
 import { isSolved, isValidPlacement } from "../validators/sudokuValidator";
 
@@ -20,31 +21,6 @@ const CELEBRATION_DELAY_MS = 1500;
 
 function buildBoardFromGivens(puzzle: Puzzle): (Symbol | null)[][] {
   return puzzle.givens.map((row) => [...row]);
-}
-
-function buildTray(puzzle: Puzzle, board: (Symbol | null)[][]): Symbol[] {
-  const needed = new Map<Symbol, number>();
-
-  for (const { row, col } of puzzle.emptyCells) {
-    const symbol = puzzle.solution[row][col];
-    needed.set(symbol, (needed.get(symbol) ?? 0) + 1);
-  }
-
-  for (const { row, col } of puzzle.emptyCells) {
-    const placed = board[row][col];
-    if (placed !== null) {
-      needed.set(placed, (needed.get(placed) ?? 0) - 1);
-    }
-  }
-
-  const tray: Symbol[] = [];
-  for (const [symbol, count] of needed) {
-    for (let i = 0; i < count; i++) {
-      tray.push(symbol);
-    }
-  }
-
-  return tray;
 }
 
 function generateNextByMode(current: Puzzle): Puzzle {
@@ -69,7 +45,21 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
   const [isCelebrating, setIsCelebrating] = useState(false);
   const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const trayGroups = useMemo(
+    () => buildTrayGroups(puzzle, board),
+    [puzzle, board]
+  );
   const tray = useMemo(() => buildTray(puzzle, board), [puzzle, board]);
+
+  useEffect(() => {
+    if (
+      selectedPiece !== null &&
+      !trayGroups.some((g) => g.symbol === selectedPiece)
+    ) {
+      setSelectedPiece(null);
+    }
+  }, [selectedPiece, trayGroups]);
+
   const { placed: placedCount, total: totalToPlace } = useMemo(
     () => countPlacedCells(puzzle.givens, board, puzzle.size),
     [board, puzzle.givens, puzzle.size]
@@ -210,6 +200,7 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     puzzle,
     board,
     tray,
+    trayGroups,
     placedCount,
     totalToPlace,
     feedback,

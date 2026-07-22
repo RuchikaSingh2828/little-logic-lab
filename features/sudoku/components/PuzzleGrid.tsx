@@ -24,7 +24,7 @@ export function PuzzleGrid({
 }: PuzzleGridProps) {
   return (
     <div
-      className="overflow-hidden rounded-2xl border-[3px] border-emerald-300 bg-white p-0 shadow-md"
+      className="overflow-hidden rounded-[1.25rem] border-[3px] border-[#65B741]/70 bg-white p-1 shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
       role="grid"
       aria-label={`${size} by ${size} picture sudoku grid`}
     >

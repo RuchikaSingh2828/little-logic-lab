@@ -130,7 +130,7 @@ export function DraggablePictureCard({
       onClick={onTap}
       className={cn(
         "touch-none cursor-grab active:cursor-grabbing rounded-2xl transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky",
-        isSelected && "ring-2 ring-coral ring-offset-2"
+        isSelected && "ring-2 ring-[#65B741] ring-offset-2"
       )}
       aria-label={`Puzzle piece ${symbol}`}
       aria-pressed={isSelected}
