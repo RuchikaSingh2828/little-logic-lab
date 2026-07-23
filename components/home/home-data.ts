@@ -11,8 +11,6 @@ import {
   Shield,
   Star,
   Trophy,
-  TrendingUp,
-  User,
   Users,
 } from "lucide-react";
 import type { AvatarId } from "./AgeAvatars";
@@ -26,54 +24,94 @@ export interface NavItem {
 export const DESKTOP_NAV: NavItem[] = [
   { label: "Home", href: "/", icon: Home },
   { label: "Puzzles", href: "/#challenges", icon: Puzzle },
-  { label: "Progress", href: "/coming-soon", icon: TrendingUp },
+  { label: "How to Play", href: "/how-to-play", icon: Lightbulb },
   { label: "Parents", href: "/parents", icon: Users },
 ];
 
 export const MOBILE_MENU_NAV: NavItem[] = [
   { label: "Home", href: "/", icon: Home },
   { label: "Puzzles", href: "/#challenges", icon: Puzzle },
-  { label: "Progress", href: "/coming-soon", icon: TrendingUp },
+  { label: "How to Play", href: "/how-to-play", icon: Lightbulb },
   { label: "Parents", href: "/parents", icon: Users },
 ];
 
 export const MOBILE_BOTTOM_NAV: NavItem[] = [
   { label: "Home", href: "/", icon: Home },
   { label: "Puzzles", href: "/#challenges", icon: Puzzle },
-  { label: "Progress", href: "/coming-soon", icon: TrendingUp },
+  { label: "How to Play", href: "/how-to-play", icon: Lightbulb },
   { label: "Parents", href: "/parents", icon: Users },
 ];
 
 export const PROFILE_MENU_ITEMS: NavItem[] = [
-  { label: "My Profile", href: "/coming-soon", icon: User },
+  { label: "How to Play", href: "/how-to-play", icon: Lightbulb },
   { label: "Parent Zone", href: "/parents", icon: Shield },
 ];
 
 export const FOOTER_LINKS = [
-  { label: "About Us", href: "/coming-soon" },
-  { label: "How It Works", href: "/coming-soon" },
-  { label: "Privacy Policy", href: "/coming-soon" },
-  { label: "Contact", href: "/coming-soon" },
+  { label: "How to Play", href: "/how-to-play" },
+  { label: "FAQ", href: "/faq" },
+  { label: "For Parents", href: "/parents" },
+  { label: "Privacy", href: "/privacy" },
+  { label: "About", href: "/about" },
 ] as const;
 
 export type Difficulty = "easy" | "medium" | "hard";
 
 export type PictureGridSize = 3 | 4 | 5;
+export type ShapeGridSize = 4 | 5 | 6;
+export type NumberGridSize = 7 | 8 | 9;
+export type ModeGridSize = PictureGridSize | ShapeGridSize | NumberGridSize;
 
 export interface GridSizeTier {
-  size: PictureGridSize;
+  size: ModeGridSize;
   label: string;
   description: string;
 }
 
-export const GRID_TIERS: GridSizeTier[] = [
+export const PICTURE_GRID_TIERS: GridSizeTier[] = [
   { size: 3, label: "3×3 Grid", description: "Great for beginners" },
   { size: 4, label: "4×4 Grid", description: "A little bigger — more to place!" },
   { size: 5, label: "5×5 Grid", description: "Big grid — about 10 spaces to fill" },
 ];
 
-/** @deprecated Use GRID_TIERS */
-export const PICTURE_GRID_TIERS = GRID_TIERS;
+export const SHAPE_GRID_TIERS: GridSizeTier[] = [
+  { size: 4, label: "4×4 Grid", description: "Shapes and colors" },
+  { size: 5, label: "5×5 Grid", description: "Growing thinkers" },
+  { size: 6, label: "6×6 Grid", description: "Bigger shape challenge" },
+];
+
+export const NUMBER_GRID_TIERS: GridSizeTier[] = [
+  { size: 7, label: "7×7 Grid", description: "Adult-style number Sudoku" },
+  { size: 8, label: "8×8 Grid", description: "Bigger challenge" },
+  { size: 9, label: "9×9 Grid", description: "Full classic Sudoku" },
+];
+
+/** @deprecated Use mode-specific tiers */
+export const GRID_TIERS = PICTURE_GRID_TIERS;
+
+export function getGridTiersForMode(mode: SudokuMode): GridSizeTier[] {
+  switch (mode) {
+    case "shape":
+      return SHAPE_GRID_TIERS;
+    case "number":
+      return NUMBER_GRID_TIERS;
+    case "picture":
+    default:
+      return PICTURE_GRID_TIERS;
+  }
+}
+
+export function getDefaultGridSize(mode: SudokuMode): ModeGridSize {
+  switch (mode) {
+    case "shape":
+      return 4;
+    case "number":
+      return 7;
+    case "picture":
+    default:
+      return 3;
+  }
+}
 
 export type AgeAccent = "green" | "blue" | "orange";
 
@@ -112,26 +150,26 @@ export const AGE_ACCENT: Record<
   }
 > = {
   green: {
-    title: "text-[#65B741]",
+    title: "text-[#2F6B1F]",
     border: "border-[#65B741]/25",
-    button: "bg-[#65B741] text-white",
-    buttonHover: "hover:bg-[#57a338]",
+    button: "bg-[#2F6B1F] text-white",
+    buttonHover: "hover:bg-[#265816]",
     soft: "bg-[#EAF6E3]",
     ring: "ring-[#65B741]/20",
   },
   blue: {
-    title: "text-[#4DA3FF]",
+    title: "text-[#1D6FBF]",
     border: "border-[#4DA3FF]/35",
-    button: "bg-[#4DA3FF] text-white",
-    buttonHover: "hover:bg-[#3b94f0]",
+    button: "bg-[#1D6FBF] text-white",
+    buttonHover: "hover:bg-[#185ea3]",
     soft: "bg-[#E8F3FF]",
     ring: "ring-[#4DA3FF]/20",
   },
   orange: {
-    title: "text-[#E8912D]",
+    title: "text-[#8A4B0F]",
     border: "border-[#FFB84D]/45",
-    button: "bg-[#FFB84D] text-[#2D3748]",
-    buttonHover: "hover:bg-[#f0a93c]",
+    button: "bg-[#8A4B0F] text-white",
+    buttonHover: "hover:bg-[#733E0C]",
     soft: "bg-[#FFF4E3]",
     ring: "ring-[#FFB84D]/25",
   },
@@ -168,7 +206,7 @@ export const AGE_GROUPS: AgeGroup[] = [
     accent: "blue",
     puzzleCount: 24,
     skillCount: 5,
-    gridLabel: "3×3 Grid",
+    gridLabel: "4×4 Grid",
     gridBlurb: "Growing thinkers",
     difficulties: ["easy", "medium", "hard"],
     timeEstimate: "5–15 minutes",
@@ -177,7 +215,7 @@ export const AGE_GROUPS: AgeGroup[] = [
     id: "7+",
     label: "Ages 7+",
     title: "Sudoku Masters",
-    description: "Classic beginner number sudoku",
+    description: "Classic adult-style number sudoku",
     avatar: "owl",
     active: true,
     mode: "number",
@@ -185,10 +223,10 @@ export const AGE_GROUPS: AgeGroup[] = [
     accent: "orange",
     puzzleCount: 26,
     skillCount: 7,
-    gridLabel: "4×4 Grid",
-    gridBlurb: "Classic Sudoku",
+    gridLabel: "7×7 Grid",
+    gridBlurb: "Like adult Sudoku",
     difficulties: ["easy", "medium", "hard"],
-    timeEstimate: "5–15 minutes",
+    timeEstimate: "10–25 minutes",
   },
 ];
 
@@ -199,17 +237,17 @@ export const DIFFICULTY_STYLES: Record<
   easy: {
     label: "Easy",
     pillLabel: "Starter",
-    className: "bg-[#EAF6E3] text-[#3F8A28]",
+    className: "bg-[#D8F0CC] text-[#1F5C16]",
   },
   medium: {
     label: "Medium",
     pillLabel: "Explorer",
-    className: "bg-[#FFF0E0] text-[#C46A2E]",
+    className: "bg-[#FFE4C4] text-[#8A4B0F]",
   },
   hard: {
     label: "Hard",
     pillLabel: "Master",
-    className: "bg-[#EEE8FF] text-[#6B67C7]",
+    className: "bg-[#E4DFF8] text-[#4B3F9A]",
   },
 };
 
@@ -218,25 +256,25 @@ export const WHY_SUDOKU = [
     title: "Builds Focus",
     description: "Improves concentration and attention.",
     icon: Brain,
-    color: "bg-[#EAF6E3] text-[#65B741]",
+    color: "bg-[#EAF6E3] text-[#2F6B1F]",
   },
   {
     title: "Develops Logic",
     description: "Strengthens logical reasoning skills.",
     icon: Puzzle,
-    color: "bg-[#E8F3FF] text-[#4DA3FF]",
+    color: "bg-[#E8F3FF] text-[#1D6FBF]",
   },
   {
     title: "Enhances Problem Solving",
     description: "Encourages thinking and smart strategies.",
     icon: Lightbulb,
-    color: "bg-[#FFF4E3] text-[#E8912D]",
+    color: "bg-[#FFF4E3] text-[#B86A12]",
   },
   {
     title: "Boosts Confidence",
     description: "Small wins lead to big self-belief.",
     icon: Trophy,
-    color: "bg-[#F3E8FF] text-[#8B5CF6]",
+    color: "bg-[#F3E8FF] text-[#6D28D9]",
   },
 ] as const;
 
@@ -271,6 +309,8 @@ export { Flame, Lightbulb, Shield, Star };
 
 export function isNavActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
-  if (href === "/#challenges") return pathname.startsWith("/sudoku");
-  return pathname.startsWith(href);
+  if (href === "/#challenges") {
+    return pathname.startsWith("/sudoku");
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
 }

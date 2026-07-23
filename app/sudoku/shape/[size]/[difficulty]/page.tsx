@@ -1,38 +1,55 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { SudokuScreen } from "@/features/sudoku/components/SudokuScreen";
+import { PuzzleJsonLd } from "@/features/sudoku/components/PuzzleJsonLd";
 import { generateShapePuzzle } from "@/features/sudoku/generators/shapeSudokuGenerator";
-import type { Difficulty, GridSize } from "@/features/sudoku/types/sudoku.types";
+import {
+  generateSudokuStaticParams,
+  parseSudokuRouteParams,
+  sudokuRouteMetadata,
+} from "@/features/sudoku/lib/routeParams";
 
 interface PageProps {
   params: Promise<{ size: string; difficulty: string }>;
 }
 
-const VALID_SIZES: GridSize[] = [3, 4, 5];
-const VALID_DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard"];
+export function generateStaticParams() {
+  return generateSudokuStaticParams("shape");
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { size: sizeStr, difficulty } = await params;
+  const parsed = parseSudokuRouteParams("shape", sizeStr, difficulty);
+  if (!parsed) return { title: "Shape Sudoku" };
+  return sudokuRouteMetadata("shape", parsed.size, parsed.difficulty);
+}
 
 export default async function ShapeSudokuPage({ params }: PageProps) {
   const { size: sizeStr, difficulty } = await params;
-  const size = parseInt(sizeStr, 10) as GridSize;
-
-  if (
-    !VALID_SIZES.includes(size) ||
-    !VALID_DIFFICULTIES.includes(difficulty as Difficulty)
-  ) {
-    notFound();
-  }
+  const parsed = parseSudokuRouteParams("shape", sizeStr, difficulty);
+  if (!parsed) notFound();
 
   const initialPuzzle = generateShapePuzzle({
-    size,
-    difficulty: difficulty as Difficulty,
+    size: parsed.size,
+    difficulty: parsed.difficulty,
   });
 
   return (
-    <SudokuScreen
-      key={`shape-${size}-${difficulty}-${initialPuzzle.id}`}
-      mode="shape"
-      size={size}
-      difficulty={difficulty as Difficulty}
-      initialPuzzle={initialPuzzle}
-    />
+    <>
+      <PuzzleJsonLd
+        mode="shape"
+        size={parsed.size}
+        difficulty={parsed.difficulty}
+      />
+      <SudokuScreen
+        key={`shape-${parsed.size}-${parsed.difficulty}-${initialPuzzle.id}`}
+        mode="shape"
+        size={parsed.size}
+        difficulty={parsed.difficulty}
+        initialPuzzle={initialPuzzle}
+      />
+    </>
   );
 }

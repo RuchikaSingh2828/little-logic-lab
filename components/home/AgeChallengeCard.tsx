@@ -14,7 +14,8 @@ import { AgeAvatarArt, type AvatarId } from "./AgeAvatars";
 import {
   AGE_ACCENT,
   DIFFICULTY_STYLES,
-  GRID_TIERS,
+  getDefaultGridSize,
+  getGridTiersForMode,
   type AgeGroup,
   type Difficulty,
 } from "./home-data";
@@ -43,8 +44,9 @@ export function ActiveAgeCard({ group }: { group: AgeGroup }) {
   const accent = AGE_ACCENT[group.accent];
   const { totalGamesPlayed } = usePuzzleProgress(group.mode);
 
-  const startSize = group.mode === "number" ? 4 : 3;
+  const startSize = getDefaultGridSize(group.mode);
   const startHref = `${group.hrefPrefix}/${startSize}/easy`;
+  const gridTiers = getGridTiersForMode(group.mode);
 
   return (
     <article
@@ -54,7 +56,7 @@ export function ActiveAgeCard({ group }: { group: AgeGroup }) {
       )}
     >
       {group.recommended && (
-        <span className="absolute left-4 top-4 rounded-md bg-[#65B741] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+        <span className="absolute left-4 top-4 rounded-md bg-[#2F6B1F] px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
           Recommended
         </span>
       )}
@@ -69,17 +71,17 @@ export function ActiveAgeCard({ group }: { group: AgeGroup }) {
         </p>
       </div>
 
-      <div className="mt-4 flex flex-nowrap items-center justify-center gap-x-2.5 overflow-x-auto text-[11px] font-medium text-[#6B7280] sm:gap-x-3 sm:text-xs">
+      <div className="mt-4 flex flex-nowrap items-center justify-center gap-x-2.5 overflow-x-auto text-xs font-medium text-[#4B5563] sm:gap-x-3">
         <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
-          <Puzzle className="h-3.5 w-3.5 text-[#9CA3AF]" strokeWidth={2.4} />
+          <Puzzle className="h-3.5 w-3.5 text-[#6B7280]" strokeWidth={2.4} />
           {group.puzzleCount} Puzzles
         </span>
         <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
-          <Flame className="h-3.5 w-3.5 text-[#FFB84D]" strokeWidth={2.4} />
+          <Flame className="h-3.5 w-3.5 text-[#C47A14]" strokeWidth={2.4} />
           Best Streak {Math.min(totalGamesPlayed, 7)}
         </span>
         <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
-          <Star className="h-3.5 w-3.5 text-[#FFB84D]" strokeWidth={2.4} />
+          <Star className="h-3.5 w-3.5 text-[#C47A14]" strokeWidth={2.4} />
           Skills {group.skillCount}
         </span>
       </div>
@@ -95,7 +97,7 @@ export function ActiveAgeCard({ group }: { group: AgeGroup }) {
             <p className="truncate text-sm font-bold whitespace-nowrap text-[#2D3748]">
               {group.gridLabel}
             </p>
-            <p className="mt-0.5 truncate text-[11px] font-medium whitespace-nowrap text-[#6B7280] sm:text-xs">
+            <p className="mt-0.5 truncate text-xs font-medium whitespace-nowrap text-[#4B5563]">
               {group.gridBlurb}
             </p>
           </div>
@@ -107,13 +109,13 @@ export function ActiveAgeCard({ group }: { group: AgeGroup }) {
         <div className="mt-3 grid w-full grid-cols-3 gap-1.5">
           {difficulties.map((difficulty) => {
             const style = DIFFICULTY_STYLES[difficulty];
-            const size = group.mode === "number" ? 4 : 3;
+            const size = getDefaultGridSize(group.mode);
             return (
               <Link
                 key={difficulty}
                 href={`${group.hrefPrefix}/${size}/${difficulty}`}
                 className={cn(
-                  "min-w-0 truncate rounded-full px-1.5 py-1 text-center text-[10px] font-bold transition-transform hover:scale-[1.03] sm:px-2 sm:text-[11px]",
+                  "min-h-9 min-w-0 truncate rounded-full px-1.5 py-2 text-center text-[10px] font-bold transition-transform hover:scale-[1.03] sm:px-2 sm:text-[11px]",
                   style.className
                 )}
               >
@@ -122,6 +124,18 @@ export function ActiveAgeCard({ group }: { group: AgeGroup }) {
             );
           })}
         </div>
+        <ul className="mt-3 flex flex-wrap justify-center gap-1.5">
+          {gridTiers.map((tier) => (
+            <li key={tier.size}>
+              <Link
+                href={`${group.hrefPrefix}/${tier.size}/easy`}
+                className="inline-flex min-h-8 items-center rounded-md bg-[#FFF8EC] px-2 py-1 text-[10px] font-bold text-[#4B5563] hover:bg-[#EAF6E3]"
+              >
+                {tier.size}×{tier.size}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="mt-auto pt-5">
@@ -143,7 +157,7 @@ export function ActiveAgeCard({ group }: { group: AgeGroup }) {
           </PopoverTrigger>
           <PopoverContent align="center" className="w-[min(100%,18rem)]">
             <div className="flex flex-col gap-1.5">
-              {GRID_TIERS.map((tier) => (
+              {gridTiers.map((tier) => (
                 <div
                   key={tier.size}
                   className="flex items-center justify-between gap-2 rounded-xl border border-[#E8E4DC] px-3 py-2"

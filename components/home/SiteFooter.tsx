@@ -20,7 +20,7 @@ export function SiteFooter() {
           ))}
         </nav>
 
-        <p className="text-xs font-medium text-[#9CA3AF]">
+        <p className="text-xs font-medium text-[#6B7280]">
           Made with ❤️ for curious minds
         </p>
       </div>

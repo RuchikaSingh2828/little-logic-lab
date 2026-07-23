@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Sparkles, Star, X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GameFeedback } from "../lib/feedbackMessages";
 
-const DISMISS_MS = 3000;
+const DISMISS_MS = 1800;
+const SUCCESS_DISMISS_MS = 1200;
 
 interface FeedbackToastProps {
   feedback: GameFeedback | null;
@@ -18,11 +19,33 @@ export function FeedbackToast({ feedback, onDismiss }: FeedbackToastProps) {
 
   useEffect(() => {
     if (!feedback) return;
-    const timer = setTimeout(() => onDismissRef.current(), DISMISS_MS);
+    const ms =
+      feedback.variant === "success" ? SUCCESS_DISMISS_MS : DISMISS_MS;
+    const timer = setTimeout(() => onDismissRef.current(), ms);
     return () => clearTimeout(timer);
   }, [feedback]);
 
   if (!feedback) return null;
+
+  if (feedback.variant === "success") {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        aria-label="Correct"
+        className="pointer-events-none fixed inset-x-0 bottom-28 z-50 flex justify-center"
+      >
+        <span
+          className={cn(
+            "flex h-14 w-14 items-center justify-center rounded-full bg-white text-3xl shadow-[0_8px_24px_rgba(0,0,0,0.12)]",
+            "motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-75 motion-safe:duration-200"
+          )}
+        >
+          👍
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -30,8 +53,7 @@ export function FeedbackToast({ feedback, onDismiss }: FeedbackToastProps) {
       aria-live="polite"
       className={cn(
         "fixed bottom-[5.5rem] left-3 right-3 z-50 mx-auto max-w-lg",
-        "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-300",
-        "motion-safe:data-[leaving]:animate-out motion-safe:data-[leaving]:fade-out motion-safe:data-[leaving]:slide-out-to-bottom-3"
+        "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-300"
       )}
     >
       <div
@@ -40,32 +62,15 @@ export function FeedbackToast({ feedback, onDismiss }: FeedbackToastProps) {
           "bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50"
         )}
       >
-        <div
-          className="pointer-events-none absolute inset-0 opacity-40"
-          aria-hidden
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 10% 50%, #fde68a 0%, transparent 25%), radial-gradient(circle at 90% 30%, #86efac 0%, transparent 20%), radial-gradient(circle at 70% 80%, #c4b5fd 0%, transparent 18%)",
-          }}
-        />
-
         <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-200/80 shadow-sm">
-          {feedback.variant === "success" ? (
-            <Star className="h-6 w-6 fill-amber-400 text-amber-500" />
-          ) : (
-            <Sparkles className="h-5 w-5 text-amber-600" />
-          )}
+          <Sparkles className="h-5 w-5 text-amber-600" />
         </div>
 
         <div className="relative min-w-0 flex-1">
           <p
             className={cn(
               "text-base font-bold leading-tight",
-              feedback.variant === "success"
-                ? "text-emerald-600"
-                : feedback.variant === "error"
-                  ? "text-rose-600"
-                  : "text-amber-800"
+              feedback.variant === "error" ? "text-rose-600" : "text-amber-800"
             )}
           >
             {feedback.title}

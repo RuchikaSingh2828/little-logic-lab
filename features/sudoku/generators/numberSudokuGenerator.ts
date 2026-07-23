@@ -18,9 +18,12 @@ export function generateNumberPuzzle(opts: {
   });
 }
 
-export function generateNextNumberPuzzle(current: Puzzle): Puzzle {
+export function generateNextNumberPuzzle(
+  current: Puzzle,
+  overrides?: { size?: GridSize; difficulty?: Difficulty }
+): Puzzle {
   return generateNumberPuzzle({
-    size: current.size,
-    difficulty: current.difficulty,
+    size: overrides?.size ?? current.size,
+    difficulty: overrides?.difficulty ?? current.difficulty,
   });
 }

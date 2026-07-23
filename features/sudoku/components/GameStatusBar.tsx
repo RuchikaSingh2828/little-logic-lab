@@ -27,7 +27,7 @@ export function GameStatusBar({
 
   return (
     <div className="mb-2 flex w-full items-center justify-between gap-2 rounded-2xl bg-white px-3 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-      <span className="shrink-0 rounded-full bg-[#65B741] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+      <span className="shrink-0 rounded-full bg-[#2F6B1F] px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white">
         {gridSize}×{gridSize}
       </span>
 

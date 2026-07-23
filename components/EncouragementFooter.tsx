@@ -1,8 +1,8 @@
-"use client";
-
-import { useMemo } from "react";
 import { Sprout } from "lucide-react";
-import { getRandomEncouragementQuote } from "@/lib/encouragementQuotes";
+import {
+  ENCOURAGEMENT_QUOTES,
+  quoteForKey,
+} from "@/lib/encouragementQuotes";
 
 interface EncouragementFooterProps {
   /** Change this to pick a fresh quote (e.g. puzzle id, route, session). */
@@ -14,10 +14,7 @@ export function EncouragementFooter({
   refreshKey = "default",
   className,
 }: EncouragementFooterProps) {
-  const quote = useMemo(
-    () => getRandomEncouragementQuote(),
-    [refreshKey]
-  );
+  const quote = quoteForKey(refreshKey) ?? ENCOURAGEMENT_QUOTES[0];
 
   return (
     <footer

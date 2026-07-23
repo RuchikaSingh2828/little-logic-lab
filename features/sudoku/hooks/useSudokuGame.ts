@@ -8,29 +8,39 @@ import {
   type GameFeedback,
 } from "../lib/feedbackMessages";
 import { countPlacedCells } from "../lib/boardProgress";
+import {
+  formatLevelLabel,
+  getNextLevel,
+  SOLVES_BEFORE_LEVEL_UP,
+  type LevelTarget,
+} from "../lib/levelProgression";
+import { getLevelSolveCount } from "../lib/progressStorage";
 import { markPuzzleComplete } from "../lib/sessionStorage";
 import type { PlacementResult } from "../types/placement.types";
 import { generateNextNumberPuzzle } from "../generators/numberSudokuGenerator";
 import { generateNextPuzzle } from "../generators/pictureSudokuGenerator";
 import { generateNextShapePuzzle } from "../generators/shapeSudokuGenerator";
 import { buildTray, buildTrayGroups } from "../lib/trayGroups";
-import type { Puzzle, Symbol } from "../types/sudoku.types";
+import type { Difficulty, GridSize, Puzzle, Symbol } from "../types/sudoku.types";
 import { isSolved, isValidPlacement } from "../validators/sudokuValidator";
 
-const CELEBRATION_DELAY_MS = 1500;
+const CELEBRATION_DELAY_MS = 1200;
 
 function buildBoardFromGivens(puzzle: Puzzle): (Symbol | null)[][] {
   return puzzle.givens.map((row) => [...row]);
 }
 
-function generateNextByMode(current: Puzzle): Puzzle {
+function generateNextByMode(
+  current: Puzzle,
+  overrides?: { size?: GridSize; difficulty?: Difficulty }
+): Puzzle {
   switch (current.mode) {
     case "picture":
-      return generateNextPuzzle(current);
+      return generateNextPuzzle(current, overrides);
     case "number":
-      return generateNextNumberPuzzle(current);
+      return generateNextNumberPuzzle(current, overrides);
     case "shape":
-      return generateNextShapePuzzle(current);
+      return generateNextShapePuzzle(current, overrides);
   }
 }
 
@@ -43,6 +53,9 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
   const [selectedPiece, setSelectedPiece] = useState<Symbol | null>(null);
   const [showCompletion, setShowCompletion] = useState(false);
   const [isCelebrating, setIsCelebrating] = useState(false);
+  const [pendingAdvance, setPendingAdvance] = useState<LevelTarget | null>(
+    null
+  );
   const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const trayGroups = useMemo(
@@ -76,16 +89,61 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     }
   }, []);
 
+  const applyPuzzle = useCallback((next: Puzzle) => {
+    setPuzzle(next);
+    setBoard(buildBoardFromGivens(next));
+    setSelectedPiece(null);
+    setFeedback(null);
+    setShowCompletion(false);
+    setIsCelebrating(false);
+    setPendingAdvance(null);
+  }, []);
+
+  const newPuzzle = useCallback(
+    (overrides?: { size?: GridSize; difficulty?: Difficulty }) => {
+      clearCelebrationTimer();
+      applyPuzzle(generateNextByMode(puzzle, overrides));
+    },
+    [puzzle, clearCelebrationTimer, applyPuzzle]
+  );
+
   const triggerCelebration = useCallback(() => {
     clearCelebrationTimer();
     setIsCelebrating(true);
     setShowCompletion(false);
+    setPendingAdvance(null);
+
+    const completedPuzzle = puzzle;
+
     celebrationTimerRef.current = setTimeout(() => {
       setIsCelebrating(false);
-      setShowCompletion(true);
       celebrationTimerRef.current = null;
+
+      const solves = getLevelSolveCount(
+        completedPuzzle.mode,
+        completedPuzzle.size,
+        completedPuzzle.difficulty
+      );
+      const nextLevel = getNextLevel(
+        completedPuzzle.mode,
+        completedPuzzle.size,
+        completedPuzzle.difficulty
+      );
+
+      if (solves >= SOLVES_BEFORE_LEVEL_UP && nextLevel.advanced) {
+        setPendingAdvance(nextLevel);
+        setShowCompletion(true);
+        return;
+      }
+
+      applyPuzzle(
+        generateNextByMode(completedPuzzle, {
+          size: completedPuzzle.size,
+          difficulty: completedPuzzle.difficulty,
+        })
+      );
     }, CELEBRATION_DELAY_MS);
-  }, [clearCelebrationTimer]);
+  }, [clearCelebrationTimer, puzzle, applyPuzzle]);
 
   const placeSymbol = useCallback(
     (row: number, col: number, symbol: Symbol): PlacementResult => {
@@ -116,7 +174,12 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
       const solved = isSolved(newBoard, puzzle.solution);
       if (solved) {
         setFeedback(null);
-        markPuzzleComplete(puzzle.mode, puzzle.size, puzzle.id);
+        markPuzzleComplete(
+          puzzle.mode,
+          puzzle.size,
+          puzzle.id,
+          puzzle.difficulty
+        );
         triggerCelebration();
       } else {
         setFeedback(getRandomCorrectFeedback());
@@ -161,7 +224,12 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     setFeedback(HINT_FEEDBACK);
 
     if (isSolved(newBoard, puzzle.solution)) {
-      markPuzzleComplete(puzzle.mode, puzzle.size, puzzle.id);
+      markPuzzleComplete(
+        puzzle.mode,
+        puzzle.size,
+        puzzle.id,
+        puzzle.difficulty
+      );
       triggerCelebration();
     }
 
@@ -175,17 +243,7 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     setFeedback(null);
     setShowCompletion(false);
     setIsCelebrating(false);
-  }, [puzzle, clearCelebrationTimer]);
-
-  const newPuzzle = useCallback(() => {
-    clearCelebrationTimer();
-    const next = generateNextByMode(puzzle);
-    setPuzzle(next);
-    setBoard(buildBoardFromGivens(next));
-    setSelectedPiece(null);
-    setFeedback(null);
-    setShowCompletion(false);
-    setIsCelebrating(false);
+    setPendingAdvance(null);
   }, [puzzle, clearCelebrationTimer]);
 
   const selectPiece = useCallback((symbol: Symbol | null) => {
@@ -194,7 +252,23 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
 
   const dismissCompletion = useCallback(() => {
     setShowCompletion(false);
+    setPendingAdvance(null);
   }, []);
+
+  const acceptAdvance = useCallback(() => {
+    if (!pendingAdvance) {
+      newPuzzle();
+      return;
+    }
+    newPuzzle({
+      size: pendingAdvance.size,
+      difficulty: pendingAdvance.difficulty,
+    });
+  }, [pendingAdvance, newPuzzle]);
+
+  const advanceLabel = pendingAdvance
+    ? formatLevelLabel(pendingAdvance.size, pendingAdvance.difficulty)
+    : null;
 
   return {
     puzzle,
@@ -208,6 +282,8 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     isComplete,
     isCelebrating,
     showCompletion,
+    advanceLabel,
+    pendingAdvance,
     placeSymbol,
     removeSymbol,
     canHint,
@@ -216,6 +292,7 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     newPuzzle,
     selectPiece,
     dismissCompletion,
+    acceptAdvance,
     setFeedback,
   };
 }

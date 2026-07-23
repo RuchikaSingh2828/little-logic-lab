@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   DndContext,
-  DragEndEvent,
+  type DragEndEvent,
+  type DragStartEvent,
   DragOverlay,
   PointerSensor,
   TouchSensor,
@@ -26,11 +28,15 @@ import { ResetDialog } from "./ResetDialog";
 import { SceneFooter } from "./SceneFooter";
 import { SudokidLogo } from "@/components/brand/SudokidLogo";
 import { useSudokuGame } from "../hooks/useSudokuGame";
-import { fireCelebrationConfetti } from "../lib/confetti";
-import { playCorrectSound, playWrongSound } from "../lib/sounds";
+import {
+  playCelebrationSound,
+  playCorrectSound,
+  playWrongSound,
+} from "../lib/sounds";
 import { trackSessionMinute } from "../lib/sessionStorage";
 import type { PlacementResult } from "../types/placement.types";
 import type { Difficulty, GridSize, Puzzle, Symbol, SudokuMode } from "../types/sudoku.types";
+import { PuzzleBreadcrumbs } from "./PuzzleBreadcrumbs";
 
 interface SudokuScreenProps {
   mode: SudokuMode;
@@ -57,6 +63,7 @@ export function SudokuScreen({
   difficulty,
   initialPuzzle,
 }: SudokuScreenProps) {
+  const router = useRouter();
   const modeConfig = SUDOKU_MODE_CONFIG[mode];
   const {
     puzzle,
@@ -68,6 +75,8 @@ export function SudokuScreen({
     selectedPiece,
     isCelebrating,
     showCompletion,
+    advanceLabel,
+    pendingAdvance,
     canHint,
     placeSymbol,
     removeSymbol,
@@ -76,6 +85,7 @@ export function SudokuScreen({
     newPuzzle,
     selectPiece,
     dismissCompletion,
+    acceptAdvance,
     setFeedback,
   } = useSudokuGame(initialPuzzle);
 
@@ -88,13 +98,16 @@ export function SudokuScreen({
   const [showHintDialog, setShowHintDialog] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const soundEnabledRef = useRef(soundEnabled);
 
   const remainingEmpty = totalToPlace - placedCount;
+  const difficultyLabel =
+    difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+  const pageHeading = `${modeConfig.title} ${size}×${size} — ${difficultyLabel}`;
+
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
 
   useEffect(() => {
     const stored = localStorage.getItem("lll_sound_enabled");
@@ -107,9 +120,11 @@ export function SudokuScreen({
   }, []);
 
   useEffect(() => {
-    if (isCelebrating) {
+    if (!isCelebrating) return;
+    void import("../lib/confetti").then(({ fireCelebrationConfetti }) => {
       fireCelebrationConfetti();
-    }
+    });
+    if (soundEnabledRef.current) playCelebrationSound();
   }, [isCelebrating]);
 
   useEffect(() => {
@@ -207,41 +222,41 @@ export function SudokuScreen({
   );
 
   const handleTryAnother = () => {
-    dismissCompletion();
-    newPuzzle();
+    if (pendingAdvance) {
+      const { size: nextSize, difficulty: nextDifficulty } = pendingAdvance;
+      dismissCompletion();
+      router.push(`/sudoku/${mode}/${nextSize}/${nextDifficulty}`);
+      return;
+    }
+    acceptAdvance();
   };
 
   const handleReset = () => {
     reset();
   };
 
-  if (!isMounted) {
-    return (
-      <div className="flex min-h-full flex-col overflow-x-hidden bg-gradient-to-b from-[#FFFBEB] via-[#FEF9EE] to-[#ECFDF5]">
-        <div className="mx-auto flex min-h-full w-full max-w-lg flex-1 flex-col items-center justify-center px-4 py-12">
-          <p className="text-sm font-medium text-emerald-700">Loading puzzle…</p>
-        </div>
-      </div>
-    );
-  }
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const symbolFromData = event.active.data.current?.symbol as
+        | Symbol
+        | undefined;
+      if (symbolFromData) {
+        setActiveDragSymbol(symbolFromData);
+        return;
+      }
+
+      const groupIndex = parseTrayGroupIndex(String(event.active.id));
+      if (groupIndex !== null) {
+        setActiveDragSymbol(trayGroups[groupIndex]?.symbol ?? null);
+      }
+    },
+    [trayGroups]
+  );
 
   return (
     <DndContext
       sensors={sensors}
-      onDragStart={(event) => {
-        const symbolFromData = event.active.data.current?.symbol as
-          | Symbol
-          | undefined;
-        if (symbolFromData) {
-          setActiveDragSymbol(symbolFromData);
-          return;
-        }
-
-        const groupIndex = parseTrayGroupIndex(String(event.active.id));
-        if (groupIndex !== null) {
-          setActiveDragSymbol(trayGroups[groupIndex]?.symbol ?? null);
-        }
-      }}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveDragSymbol(null)}
     >
@@ -262,8 +277,8 @@ export function SudokuScreen({
 
               <div className="min-w-0 flex-1 text-center">
                 <h1 className="flex items-center justify-center gap-1.5 text-base font-bold leading-tight text-[#5C4033] sm:text-lg">
-                  <SudokidLogo variant="icon" className="h-5 w-5" />
-                  {modeConfig.title}
+                  <SudokidLogo variant="icon" className="h-5 w-5 shrink-0" />
+                  <span className="truncate">{pageHeading}</span>
                 </h1>
               </div>
 
@@ -281,13 +296,22 @@ export function SudokuScreen({
                 )}
               </Button>
             </div>
+            <PuzzleBreadcrumbs
+              mode={mode}
+              size={size}
+              difficulty={difficulty}
+              className="mt-2"
+            />
+            <p className="mt-1.5 text-center text-sm leading-snug text-[#4B5563]">
+              {modeConfig.instructions}
+            </p>
           </header>
 
           <GameStatusBar
             filledCount={placedCount}
             totalEmpty={totalToPlace}
-            gridSize={size}
-            difficulty={difficulty}
+            gridSize={puzzle.size}
+            difficulty={puzzle.difficulty}
           />
 
           <div className="flex flex-1 flex-col items-center justify-center gap-2.5 py-1">
@@ -346,6 +370,7 @@ export function SudokuScreen({
 
       <CompletionDialog
         open={showCompletion}
+        nextLevelLabel={advanceLabel}
         onTryAnother={handleTryAnother}
         onFinish={dismissCompletion}
       />

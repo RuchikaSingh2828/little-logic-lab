@@ -28,12 +28,18 @@ function subscribe(callback: () => void) {
 }
 
 function getServerSnapshot(mode: SudokuMode) {
+  const unlocked =
+    mode === "shape" ? [4, 5, 6] : mode === "number" ? [7, 8, 9] : [3, 4, 5];
   return JSON.stringify({
     mode,
-    unlocked: [3, 4, 5],
+    unlocked,
     solves3: 0,
     solves4: 0,
     solves5: 0,
+    solves6: 0,
+    solves7: 0,
+    solves8: 0,
+    solves9: 0,
     totalGamesPlayed: 0,
   });
 }
@@ -46,15 +52,27 @@ export function usePuzzleProgress(mode: SudokuMode) {
     () => getServerSnapshot(mode)
   );
 
-  const { unlocked, solves3, solves4, solves5, totalGamesPlayed } = JSON.parse(
-    snapshot
-  ) as {
+  const {
+    unlocked,
+    solves3,
+    solves4,
+    solves5,
+    solves6,
+    solves7,
+    solves8,
+    solves9,
+    totalGamesPlayed,
+  } = JSON.parse(snapshot) as {
     pathname?: string;
     mode?: SudokuMode;
     unlocked: GridSize[];
     solves3: number;
     solves4: number;
     solves5: number;
+    solves6: number;
+    solves7: number;
+    solves8: number;
+    solves9: number;
     totalGamesPlayed: number;
   };
 
@@ -69,6 +87,10 @@ export function usePuzzleProgress(mode: SudokuMode) {
       3: solves3,
       4: solves4,
       5: solves5,
+      6: solves6,
+      7: solves7,
+      8: solves8,
+      9: solves9,
     } as Partial<Record<GridSize, number>>,
   };
 }

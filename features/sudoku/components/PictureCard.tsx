@@ -37,6 +37,13 @@ function ShapeGlyph({ type, color }: { type: string; color: string }) {
           {...shared}
         />
       );
+    case "hexagon":
+      return (
+        <polygon
+          points="24,7 38,15 38,33 24,41 10,33 10,15"
+          {...shared}
+        />
+      );
     default:
       return <circle cx="24" cy="24" r="16" {...shared} />;
   }

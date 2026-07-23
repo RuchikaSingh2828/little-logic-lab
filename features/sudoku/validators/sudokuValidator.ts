@@ -1,3 +1,4 @@
+import { getBoxDimensions } from "../lib/boxConfig";
 import type { Symbol } from "../types/sudoku.types";
 
 export function isValidPlacement(
@@ -13,6 +14,18 @@ export function isValidPlacement(
   for (let r = 0; r < size; r++) {
     if (r !== row && board[r][col] === symbol) return false;
   }
+
+  const box = getBoxDimensions(size);
+  if (box) {
+    const startRow = Math.floor(row / box.rows) * box.rows;
+    const startCol = Math.floor(col / box.cols) * box.cols;
+    for (let r = startRow; r < startRow + box.rows; r++) {
+      for (let c = startCol; c < startCol + box.cols; c++) {
+        if ((r !== row || c !== col) && board[r][c] === symbol) return false;
+      }
+    }
+  }
+
   return true;
 }
 

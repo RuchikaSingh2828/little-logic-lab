@@ -20,7 +20,7 @@ export function PieceTray({
 
   return (
     <div className="w-full">
-      <p className="mb-2 text-center text-[11px] font-medium text-emerald-800/80 sm:text-xs">
+      <p className="mb-2 text-center text-xs font-medium text-emerald-900 sm:text-sm">
         👆 Tap a picture below, then tap any empty cell to place it.
       </p>
       <div
@@ -48,7 +48,7 @@ export function PieceTray({
                 onTap={() => onPieceTap(group.symbol)}
               />
               <span
-                className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#65B741] px-1.5 text-[10px] font-bold text-white"
+                className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#2F6B1F] px-1.5 text-[11px] font-bold text-white"
                 aria-label={`${group.remaining} remaining`}
               >
                 {group.remaining}
