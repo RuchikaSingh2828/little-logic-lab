@@ -54,8 +54,6 @@ function parseTrayGroupIndex(id: string): number | null {
 
 export function SudokuScreen({
   mode,
-  size,
-  difficulty,
   initialPuzzle,
 }: SudokuScreenProps) {
   const modeConfig = SUDOKU_MODE_CONFIG[mode];

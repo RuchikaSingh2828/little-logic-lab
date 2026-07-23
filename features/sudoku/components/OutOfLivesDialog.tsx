@@ -19,7 +19,10 @@ interface OutOfLivesDialogProps {
 
 export function OutOfLivesDialog({ open, onTryAgain }: OutOfLivesDialogProps) {
   const onTryAgainRef = useRef(onTryAgain);
-  onTryAgainRef.current = onTryAgain;
+
+  useEffect(() => {
+    onTryAgainRef.current = onTryAgain;
+  }, [onTryAgain]);
 
   useEffect(() => {
     if (!open) return;
