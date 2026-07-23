@@ -8,6 +8,7 @@ import {
   type GameFeedback,
 } from "../lib/feedbackMessages";
 import { countPlacedCells } from "../lib/boardProgress";
+import { afterWrongPlacement, maxLives } from "../lib/lives";
 import { markPuzzleComplete } from "../lib/sessionStorage";
 import type { PlacementResult } from "../types/placement.types";
 import { generateNextNumberPuzzle } from "../generators/numberSudokuGenerator";
@@ -43,7 +44,11 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
   const [selectedPiece, setSelectedPiece] = useState<Symbol | null>(null);
   const [showCompletion, setShowCompletion] = useState(false);
   const [isCelebrating, setIsCelebrating] = useState(false);
+  const [livesUsed, setLivesUsed] = useState(0);
+  const [showOutOfLives, setShowOutOfLives] = useState(false);
   const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const livesMax = maxLives(puzzle.size);
 
   const trayGroups = useMemo(
     () => buildTrayGroups(puzzle, board),
@@ -104,7 +109,15 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
       const answerCorrect = puzzle.solution[row][col] === symbol;
 
       if (!rowColValid || !answerCorrect) {
+        if (showOutOfLives) {
+          return { type: "noop" };
+        }
+        const result = afterWrongPlacement(livesUsed, maxLives(puzzle.size));
+        setLivesUsed(result.livesUsed);
         setFeedback(INVALID_PLACEMENT_FEEDBACK);
+        if (result.outOfLives) {
+          setShowOutOfLives(true);
+        }
         return { type: "wrong", row, col };
       }
 
@@ -124,7 +137,7 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
 
       return { type: "correct", row, col, solved };
     },
-    [board, puzzle, triggerCelebration]
+    [board, puzzle, triggerCelebration, livesUsed, showOutOfLives]
   );
 
   const removeSymbol = useCallback(
@@ -175,6 +188,8 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     setFeedback(null);
     setShowCompletion(false);
     setIsCelebrating(false);
+    setLivesUsed(0);
+    setShowOutOfLives(false);
   }, [puzzle, clearCelebrationTimer]);
 
   const newPuzzle = useCallback(() => {
@@ -186,7 +201,17 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     setFeedback(null);
     setShowCompletion(false);
     setIsCelebrating(false);
+    setLivesUsed(0);
+    setShowOutOfLives(false);
   }, [puzzle, clearCelebrationTimer]);
+
+  const retryAfterOutOfLives = useCallback(() => {
+    setBoard(buildBoardFromGivens(puzzle));
+    setSelectedPiece(null);
+    setFeedback(null);
+    setLivesUsed(0);
+    setShowOutOfLives(false);
+  }, [puzzle]);
 
   const selectPiece = useCallback((symbol: Symbol | null) => {
     setSelectedPiece(symbol);
@@ -208,12 +233,16 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     isComplete,
     isCelebrating,
     showCompletion,
+    livesUsed,
+    livesMax,
+    showOutOfLives,
     placeSymbol,
     removeSymbol,
     canHint,
     hint,
     reset,
     newPuzzle,
+    retryAfterOutOfLives,
     selectPiece,
     dismissCompletion,
     setFeedback,
