@@ -58,6 +58,7 @@ Triggered when a wrong placement causes `livesUsed` to reach `maxLives`.
   - Child may tap **Try again** immediately → reset now
   - If no tap after 1.3s → auto-reset (same as Try again)
 - While popup is visible: block further placements
+- **Look:** glass / frosted panel — translucent (not opaque white), backdrop blur, **white text**, still on-theme with Sudokid greens/browns (subtle border or soft tint so it doesn’t feel generic dark-glass). Button should stay readable on the glass (solid or high-contrast enough for kids).
 
 On the last-life wrong placement: still play existing shake + wrong sound, update counter to e.g. `4/4`, then show the popup.
 
@@ -109,6 +110,7 @@ GameStatusBar
 - Hints do not change lives
 - At max lives, popup appears; Try again or 1.3s auto-reset restores same puzzle and `0 / max`
 - Status bar shows life icon + red used / green total; placement `filled / total` is gone
+- Out-of-lives popup uses translucent glass styling with white copy, readable Try again control
 - Existing tests still pass; new lives coverage added
 
 ## Risks / notes
@@ -116,3 +118,4 @@ GameStatusBar
 - Approach: extend `useSudokuGame` + status bar (no separate lives subsystem for v1)
 - Timer + button race: clear the 1.3s timer when Try again is pressed to avoid double-reset
 - Accessibility: popup should be readable; auto-dismiss must not strand keyboard/screen-reader users (button remains available for the full 1.3s)
+- Glass + white text: ensure contrast over busy grid/tray; prefer light frosted glass with soft theme tint over pure dark glass if the playfield is bright
