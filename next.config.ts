@@ -27,6 +27,28 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   trailingSlash: false,
   poweredByHeader: false,
+  async redirects() {
+    const difficulties = ["easy", "medium", "hard"] as const;
+    const legacyNumberSizes = [3, 4, 5, 6] as const;
+    const legacyShapeSizes = [3] as const;
+
+    return [
+      ...legacyNumberSizes.flatMap((size) =>
+        difficulties.map((difficulty) => ({
+          source: `/sudoku/number/${size}/${difficulty}`,
+          destination: `/sudoku/number/7/${difficulty}`,
+          permanent: true,
+        }))
+      ),
+      ...legacyShapeSizes.flatMap((size) =>
+        difficulties.map((difficulty) => ({
+          source: `/sudoku/shape/${size}/${difficulty}`,
+          destination: `/sudoku/shape/4/${difficulty}`,
+          permanent: true,
+        }))
+      ),
+    ];
+  },
   async headers() {
     return [
       {

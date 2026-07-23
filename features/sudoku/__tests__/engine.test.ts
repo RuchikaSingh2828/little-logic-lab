@@ -6,6 +6,7 @@ import { generateNumberPuzzle } from "../generators/numberSudokuGenerator";
 import { getEmptyCellCount } from "../levels/difficultyConfig";
 import { countPlacedCells } from "../lib/boardProgress";
 import {
+  clearLastRecordedPuzzleIfMatch,
   getLevelSolveCount,
   getSolveCount,
   getTotalGamesPlayed,
@@ -250,6 +251,17 @@ describe("progressStorage", () => {
     recordPuzzleSolve(mode, 3, "puzzle-b");
 
     expect(getTotalGamesPlayed(mode)).toBe(2);
+    expect(getSolveCount(mode, 3)).toBe(2);
+  });
+
+  it("allows the same puzzle id to count again after reset", () => {
+    recordPuzzleSolve(mode, 3, "puzzle-reset", "easy");
+    expect(getLevelSolveCount(mode, 3, "easy")).toBe(1);
+
+    clearLastRecordedPuzzleIfMatch(mode, "puzzle-reset");
+    recordPuzzleSolve(mode, 3, "puzzle-reset", "easy");
+
+    expect(getLevelSolveCount(mode, 3, "easy")).toBe(2);
     expect(getSolveCount(mode, 3)).toBe(2);
   });
 

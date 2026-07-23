@@ -159,6 +159,18 @@ export function recordPuzzleSolve(
   return null;
 }
 
+/** Allow the same puzzle id to count again after a board reset. */
+export function clearLastRecordedPuzzleIfMatch(
+  mode: SudokuMode,
+  puzzleId: string
+): void {
+  if (typeof window === "undefined") return;
+  const progress = readProgress(mode);
+  if (progress.lastRecordedPuzzleId !== puzzleId) return;
+  progress.lastRecordedPuzzleId = null;
+  writeProgress(mode, progress);
+}
+
 export function getUnlockedGridSizes(mode: SudokuMode): GridSize[] {
   switch (mode) {
     case "shape":

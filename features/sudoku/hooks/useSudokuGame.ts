@@ -14,7 +14,7 @@ import {
   SOLVES_BEFORE_LEVEL_UP,
   type LevelTarget,
 } from "../lib/levelProgression";
-import { getLevelSolveCount } from "../lib/progressStorage";
+import { getLevelSolveCount, clearLastRecordedPuzzleIfMatch } from "../lib/progressStorage";
 import { markPuzzleComplete } from "../lib/sessionStorage";
 import type { PlacementResult } from "../types/placement.types";
 import { generateNextNumberPuzzle } from "../generators/numberSudokuGenerator";
@@ -238,6 +238,7 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
 
   const reset = useCallback(() => {
     clearCelebrationTimer();
+    clearLastRecordedPuzzleIfMatch(puzzle.mode, puzzle.id);
     setBoard(buildBoardFromGivens(puzzle));
     setSelectedPiece(null);
     setFeedback(null);
