@@ -19,6 +19,7 @@ import { FeedbackToast } from "./FeedbackToast";
 import { GameActions } from "./GameActions";
 import { GameStatusBar } from "./GameStatusBar";
 import { HintDialog } from "./HintDialog";
+import { OutOfLivesDialog } from "./OutOfLivesDialog";
 import { PictureCard } from "./PictureCard";
 import { PieceTray } from "./PieceTray";
 import { PuzzleGrid } from "./PuzzleGrid";
@@ -69,6 +70,9 @@ export function SudokuScreen({
     isCelebrating,
     showCompletion,
     canHint,
+    livesUsed,
+    livesMax,
+    showOutOfLives,
     placeSymbol,
     removeSymbol,
     hint,
@@ -76,6 +80,7 @@ export function SudokuScreen({
     newPuzzle,
     selectPiece,
     dismissCompletion,
+    retryAfterOutOfLives,
     setFeedback,
   } = useSudokuGame(initialPuzzle);
 
@@ -166,6 +171,8 @@ export function SudokuScreen({
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       setActiveDragSymbol(null);
+      if (showOutOfLives) return;
+
       const { active, over } = event;
       if (!over) return;
 
@@ -187,16 +194,17 @@ export function SudokuScreen({
 
       tryPlaceSymbol(cell.row, cell.col, draggedSymbol);
     },
-    [tryPlaceSymbol, trayGroups]
+    [tryPlaceSymbol, trayGroups, showOutOfLives]
   );
 
   const handleCellTap = useCallback(
     (row: number, col: number) => {
+      if (showOutOfLives) return;
       if (selectedPiece) {
         tryPlaceSymbol(row, col, selectedPiece);
       }
     },
-    [selectedPiece, tryPlaceSymbol]
+    [selectedPiece, tryPlaceSymbol, showOutOfLives]
   );
 
   const handlePieceTap = useCallback(
@@ -284,10 +292,10 @@ export function SudokuScreen({
           </header>
 
           <GameStatusBar
-            filledCount={placedCount}
-            totalEmpty={totalToPlace}
-            gridSize={size}
-            difficulty={difficulty}
+            livesUsed={livesUsed}
+            livesMax={livesMax}
+            gridSize={puzzle.size}
+            difficulty={puzzle.difficulty}
           />
 
           <div className="flex flex-1 flex-col items-center justify-center gap-2.5 py-1">
@@ -342,6 +350,11 @@ export function SudokuScreen({
         open={showResetDialog}
         onOpenChange={setShowResetDialog}
         onReset={handleReset}
+      />
+
+      <OutOfLivesDialog
+        open={showOutOfLives}
+        onTryAgain={retryAfterOutOfLives}
       />
 
       <CompletionDialog
