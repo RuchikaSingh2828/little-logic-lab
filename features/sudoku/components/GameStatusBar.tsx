@@ -1,10 +1,11 @@
 "use client";
 
+import { Heart } from "lucide-react";
 import type { Difficulty, GridSize } from "../types/sudoku.types";
 
 interface GameStatusBarProps {
-  filledCount: number;
-  totalEmpty: number;
+  livesUsed: number;
+  livesMax: number;
   gridSize: GridSize;
   difficulty: Difficulty;
 }
@@ -16,8 +17,8 @@ function difficultyStars(difficulty: Difficulty): number {
 }
 
 export function GameStatusBar({
-  filledCount,
-  totalEmpty,
+  livesUsed,
+  livesMax,
   gridSize,
   difficulty,
 }: GameStatusBarProps) {
@@ -40,8 +41,17 @@ export function GameStatusBar({
         </span>
       </div>
 
-      <span className="shrink-0 text-sm font-bold tabular-nums text-[#5C4033]">
-        {filledCount} / {totalEmpty}
+      <span
+        className="flex shrink-0 items-center gap-1 text-sm font-bold tabular-nums"
+        aria-label={`${livesUsed} of ${livesMax} lives used`}
+      >
+        <Heart
+          className="h-4 w-4 fill-[#E85D5D] text-[#E85D5D]"
+          aria-hidden
+        />
+        <span className="text-[#E85D5D]">{livesUsed}</span>
+        <span className="text-[#5C4033]">/</span>
+        <span className="text-[#65B741]">{livesMax}</span>
       </span>
     </div>
   );
