@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { EncouragementFooter } from "@/components/EncouragementFooter";
 import { Button } from "@/components/ui/button";
+
+export const metadata: Metadata = {
+  title: "Coming Soon",
+  description: "More Sudokid puzzles and features are on the way.",
+  robots: { index: false, follow: true },
+};
 
 export default function ComingSoonPage() {
   return (

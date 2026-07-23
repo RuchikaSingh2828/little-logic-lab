@@ -37,6 +37,13 @@ function ShapeGlyph({ type, color }: { type: string; color: string }) {
           {...shared}
         />
       );
+    case "hexagon":
+      return (
+        <polygon
+          points="24,7 38,15 38,33 24,41 10,33 10,15"
+          {...shared}
+        />
+      );
     default:
       return <circle cx="24" cy="24" r="16" {...shared} />;
   }
@@ -130,7 +137,7 @@ export function DraggablePictureCard({
       onClick={onTap}
       className={cn(
         "touch-none cursor-grab active:cursor-grabbing rounded-2xl transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky",
-        isSelected && "ring-2 ring-coral ring-offset-2"
+        isSelected && "ring-2 ring-[#65B741] ring-offset-2"
       )}
       aria-label={`Puzzle piece ${symbol}`}
       aria-pressed={isSelected}

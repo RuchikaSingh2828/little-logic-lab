@@ -7,9 +7,7 @@ export interface GameFeedback {
 }
 
 export const CORRECT_PLACEMENT_FEEDBACK: GameFeedback[] = [
-  { title: "Nice thinking!", subtitle: "You're doing great!", variant: "success" },
-  { title: "Great match!", subtitle: "Keep it up!", variant: "success" },
-  { title: "Well done!", subtitle: "You're on a roll!", variant: "success" },
+  { title: "👍", variant: "success" },
 ];
 
 export const INVALID_PLACEMENT_FEEDBACK: GameFeedback = {
@@ -25,6 +23,5 @@ export const HINT_FEEDBACK: GameFeedback = {
 };
 
 export function getRandomCorrectFeedback(): GameFeedback {
-  const index = Math.floor(Math.random() * CORRECT_PLACEMENT_FEEDBACK.length);
-  return CORRECT_PLACEMENT_FEEDBACK[index];
+  return CORRECT_PLACEMENT_FEEDBACK[0];
 }

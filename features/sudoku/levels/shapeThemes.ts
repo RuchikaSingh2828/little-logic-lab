@@ -4,7 +4,10 @@ export interface ShapeTheme {
   symbols: string[];
 }
 
-function shape(type: "circle" | "square" | "triangle" | "diamond" | "star", color: string) {
+function shape(
+  type: "circle" | "square" | "triangle" | "diamond" | "star" | "hexagon",
+  color: string
+) {
   return `shape:${type}:${color}`;
 }
 
@@ -18,6 +21,7 @@ export const SHAPE_THEMES: ShapeTheme[] = [
       shape("triangle", "#22C55E"),
       shape("diamond", "#A855F7"),
       shape("star", "#F59E0B"),
+      shape("hexagon", "#06B6D4"),
     ],
   },
   {
@@ -29,6 +33,7 @@ export const SHAPE_THEMES: ShapeTheme[] = [
       shape("triangle", "#86EFAC"),
       shape("diamond", "#C4B5FD"),
       shape("star", "#FCD34D"),
+      shape("hexagon", "#67E8F9"),
     ],
   },
   {
@@ -40,6 +45,7 @@ export const SHAPE_THEMES: ShapeTheme[] = [
       shape("triangle", "#15803D"),
       shape("diamond", "#7E22CE"),
       shape("star", "#D97706"),
+      shape("hexagon", "#0891B2"),
     ],
   },
 ];

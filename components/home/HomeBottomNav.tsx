@@ -20,7 +20,7 @@ export function HomeBottomNav() {
                 href={item.href}
                 className={cn(
                   "flex min-w-[4.5rem] flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-semibold transition-colors",
-                  isActive ? "text-[#3F8A28]" : "text-[#9CA3AF]"
+                  isActive ? "text-[#3F8A28]" : "text-[#4B5563]"
                 )}
               >
                 <span
@@ -32,7 +32,7 @@ export function HomeBottomNav() {
                   <item.icon
                     className={cn(
                       "h-5 w-5",
-                      isActive ? "text-[#65B741]" : "text-[#C4BEB6]"
+                      isActive ? "text-[#65B741]" : "text-[#6B7280]"
                     )}
                     strokeWidth={isActive ? 2.5 : 2}
                   />

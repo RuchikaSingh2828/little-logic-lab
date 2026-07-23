@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   getRandomCorrectFeedback,
   HINT_FEEDBACK,
@@ -8,53 +8,39 @@ import {
   type GameFeedback,
 } from "../lib/feedbackMessages";
 import { countPlacedCells } from "../lib/boardProgress";
+import {
+  formatLevelLabel,
+  getNextLevel,
+  SOLVES_BEFORE_LEVEL_UP,
+  type LevelTarget,
+} from "../lib/levelProgression";
+import { getLevelSolveCount, clearLastRecordedPuzzleIfMatch } from "../lib/progressStorage";
 import { markPuzzleComplete } from "../lib/sessionStorage";
 import type { PlacementResult } from "../types/placement.types";
 import { generateNextNumberPuzzle } from "../generators/numberSudokuGenerator";
 import { generateNextPuzzle } from "../generators/pictureSudokuGenerator";
 import { generateNextShapePuzzle } from "../generators/shapeSudokuGenerator";
-import type { Puzzle, Symbol } from "../types/sudoku.types";
+import { buildTray, buildTrayGroups } from "../lib/trayGroups";
+import type { Difficulty, GridSize, Puzzle, Symbol } from "../types/sudoku.types";
 import { isSolved, isValidPlacement } from "../validators/sudokuValidator";
 
-const CELEBRATION_DELAY_MS = 1500;
+const CELEBRATION_DELAY_MS = 1200;
 
 function buildBoardFromGivens(puzzle: Puzzle): (Symbol | null)[][] {
   return puzzle.givens.map((row) => [...row]);
 }
 
-function buildTray(puzzle: Puzzle, board: (Symbol | null)[][]): Symbol[] {
-  const needed = new Map<Symbol, number>();
-
-  for (const { row, col } of puzzle.emptyCells) {
-    const symbol = puzzle.solution[row][col];
-    needed.set(symbol, (needed.get(symbol) ?? 0) + 1);
-  }
-
-  for (const { row, col } of puzzle.emptyCells) {
-    const placed = board[row][col];
-    if (placed !== null) {
-      needed.set(placed, (needed.get(placed) ?? 0) - 1);
-    }
-  }
-
-  const tray: Symbol[] = [];
-  for (const [symbol, count] of needed) {
-    for (let i = 0; i < count; i++) {
-      tray.push(symbol);
-    }
-  }
-
-  return tray;
-}
-
-function generateNextByMode(current: Puzzle): Puzzle {
+function generateNextByMode(
+  current: Puzzle,
+  overrides?: { size?: GridSize; difficulty?: Difficulty }
+): Puzzle {
   switch (current.mode) {
     case "picture":
-      return generateNextPuzzle(current);
+      return generateNextPuzzle(current, overrides);
     case "number":
-      return generateNextNumberPuzzle(current);
+      return generateNextNumberPuzzle(current, overrides);
     case "shape":
-      return generateNextShapePuzzle(current);
+      return generateNextShapePuzzle(current, overrides);
   }
 }
 
@@ -67,9 +53,26 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
   const [selectedPiece, setSelectedPiece] = useState<Symbol | null>(null);
   const [showCompletion, setShowCompletion] = useState(false);
   const [isCelebrating, setIsCelebrating] = useState(false);
+  const [pendingAdvance, setPendingAdvance] = useState<LevelTarget | null>(
+    null
+  );
   const celebrationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const trayGroups = useMemo(
+    () => buildTrayGroups(puzzle, board),
+    [puzzle, board]
+  );
   const tray = useMemo(() => buildTray(puzzle, board), [puzzle, board]);
+
+  useEffect(() => {
+    if (
+      selectedPiece !== null &&
+      !trayGroups.some((g) => g.symbol === selectedPiece)
+    ) {
+      setSelectedPiece(null);
+    }
+  }, [selectedPiece, trayGroups]);
+
   const { placed: placedCount, total: totalToPlace } = useMemo(
     () => countPlacedCells(puzzle.givens, board, puzzle.size),
     [board, puzzle.givens, puzzle.size]
@@ -86,16 +89,61 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     }
   }, []);
 
+  const applyPuzzle = useCallback((next: Puzzle) => {
+    setPuzzle(next);
+    setBoard(buildBoardFromGivens(next));
+    setSelectedPiece(null);
+    setFeedback(null);
+    setShowCompletion(false);
+    setIsCelebrating(false);
+    setPendingAdvance(null);
+  }, []);
+
+  const newPuzzle = useCallback(
+    (overrides?: { size?: GridSize; difficulty?: Difficulty }) => {
+      clearCelebrationTimer();
+      applyPuzzle(generateNextByMode(puzzle, overrides));
+    },
+    [puzzle, clearCelebrationTimer, applyPuzzle]
+  );
+
   const triggerCelebration = useCallback(() => {
     clearCelebrationTimer();
     setIsCelebrating(true);
     setShowCompletion(false);
+    setPendingAdvance(null);
+
+    const completedPuzzle = puzzle;
+
     celebrationTimerRef.current = setTimeout(() => {
       setIsCelebrating(false);
-      setShowCompletion(true);
       celebrationTimerRef.current = null;
+
+      const solves = getLevelSolveCount(
+        completedPuzzle.mode,
+        completedPuzzle.size,
+        completedPuzzle.difficulty
+      );
+      const nextLevel = getNextLevel(
+        completedPuzzle.mode,
+        completedPuzzle.size,
+        completedPuzzle.difficulty
+      );
+
+      if (solves >= SOLVES_BEFORE_LEVEL_UP && nextLevel.advanced) {
+        setPendingAdvance(nextLevel);
+        setShowCompletion(true);
+        return;
+      }
+
+      applyPuzzle(
+        generateNextByMode(completedPuzzle, {
+          size: completedPuzzle.size,
+          difficulty: completedPuzzle.difficulty,
+        })
+      );
     }, CELEBRATION_DELAY_MS);
-  }, [clearCelebrationTimer]);
+  }, [clearCelebrationTimer, puzzle, applyPuzzle]);
 
   const placeSymbol = useCallback(
     (row: number, col: number, symbol: Symbol): PlacementResult => {
@@ -126,7 +174,12 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
       const solved = isSolved(newBoard, puzzle.solution);
       if (solved) {
         setFeedback(null);
-        markPuzzleComplete(puzzle.mode, puzzle.size, puzzle.id);
+        markPuzzleComplete(
+          puzzle.mode,
+          puzzle.size,
+          puzzle.id,
+          puzzle.difficulty
+        );
         triggerCelebration();
       } else {
         setFeedback(getRandomCorrectFeedback());
@@ -171,7 +224,12 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     setFeedback(HINT_FEEDBACK);
 
     if (isSolved(newBoard, puzzle.solution)) {
-      markPuzzleComplete(puzzle.mode, puzzle.size, puzzle.id);
+      markPuzzleComplete(
+        puzzle.mode,
+        puzzle.size,
+        puzzle.id,
+        puzzle.difficulty
+      );
       triggerCelebration();
     }
 
@@ -180,22 +238,13 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
 
   const reset = useCallback(() => {
     clearCelebrationTimer();
+    clearLastRecordedPuzzleIfMatch(puzzle.mode, puzzle.id);
     setBoard(buildBoardFromGivens(puzzle));
     setSelectedPiece(null);
     setFeedback(null);
     setShowCompletion(false);
     setIsCelebrating(false);
-  }, [puzzle, clearCelebrationTimer]);
-
-  const newPuzzle = useCallback(() => {
-    clearCelebrationTimer();
-    const next = generateNextByMode(puzzle);
-    setPuzzle(next);
-    setBoard(buildBoardFromGivens(next));
-    setSelectedPiece(null);
-    setFeedback(null);
-    setShowCompletion(false);
-    setIsCelebrating(false);
+    setPendingAdvance(null);
   }, [puzzle, clearCelebrationTimer]);
 
   const selectPiece = useCallback((symbol: Symbol | null) => {
@@ -204,12 +253,29 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
 
   const dismissCompletion = useCallback(() => {
     setShowCompletion(false);
+    setPendingAdvance(null);
   }, []);
+
+  const acceptAdvance = useCallback(() => {
+    if (!pendingAdvance) {
+      newPuzzle();
+      return;
+    }
+    newPuzzle({
+      size: pendingAdvance.size,
+      difficulty: pendingAdvance.difficulty,
+    });
+  }, [pendingAdvance, newPuzzle]);
+
+  const advanceLabel = pendingAdvance
+    ? formatLevelLabel(pendingAdvance.size, pendingAdvance.difficulty)
+    : null;
 
   return {
     puzzle,
     board,
     tray,
+    trayGroups,
     placedCount,
     totalToPlace,
     feedback,
@@ -217,6 +283,8 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     isComplete,
     isCelebrating,
     showCompletion,
+    advanceLabel,
+    pendingAdvance,
     placeSymbol,
     removeSymbol,
     canHint,
@@ -225,6 +293,7 @@ export function useSudokuGame(initialPuzzle: Puzzle) {
     newPuzzle,
     selectPiece,
     dismissCompletion,
+    acceptAdvance,
     setFeedback,
   };
 }

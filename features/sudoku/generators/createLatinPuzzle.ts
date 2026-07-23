@@ -1,6 +1,14 @@
 import { getEmptyCellCount } from "../levels/difficultyConfig";
-import type { Difficulty, GridSize, Puzzle, SudokuMode, Symbol } from "../types/sudoku.types";
+import { hasSudokuBoxes } from "../lib/boxConfig";
+import type {
+  Difficulty,
+  GridSize,
+  Puzzle,
+  SudokuMode,
+  Symbol,
+} from "../types/sudoku.types";
 import { generateLatinSquare } from "./latinSquare";
+import { generateSudokuGrid } from "./sudokuGrid";
 
 function shufflePositions(size: number): { row: number; col: number }[] {
   const positions: { row: number; col: number }[] = [];
@@ -24,7 +32,9 @@ export function createLatinPuzzle(opts: {
   symbols: Symbol[];
 }): Puzzle {
   const symbols = opts.symbols.slice(0, opts.size);
-  const solution = generateLatinSquare(opts.size, symbols);
+  const solution = hasSudokuBoxes(opts.size)
+    ? generateSudokuGrid(opts.size, symbols)
+    : generateLatinSquare(opts.size, symbols);
 
   const givens: (Symbol | null)[][] = solution.map((row) => [...row]);
   const emptyCount = getEmptyCellCount(opts.size, opts.difficulty);

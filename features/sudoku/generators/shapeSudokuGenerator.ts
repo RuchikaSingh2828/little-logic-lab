@@ -24,11 +24,14 @@ export function generateShapePuzzle(opts: {
   });
 }
 
-export function generateNextShapePuzzle(current: Puzzle): Puzzle {
+export function generateNextShapePuzzle(
+  current: Puzzle,
+  overrides?: { size?: GridSize; difficulty?: Difficulty }
+): Puzzle {
   const nextTheme = getNextShapeTheme(current.themeId);
   return generateShapePuzzle({
-    size: current.size,
-    difficulty: current.difficulty,
+    size: overrides?.size ?? current.size,
+    difficulty: overrides?.difficulty ?? current.difficulty,
     themeId: nextTheme.id,
   });
 }

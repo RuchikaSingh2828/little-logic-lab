@@ -1,34 +1,60 @@
+"use client";
+
+import { ChevronsRight, Lightbulb, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface GameActionsProps {
+  remainingEmpty: number;
+  canHint: boolean;
   onHint: () => void;
   onReset: () => void;
-  onNewPuzzle: () => void;
+  onNext: () => void;
 }
 
-export function GameActions({ onHint, onReset, onNewPuzzle }: GameActionsProps) {
+export function GameActions({
+  remainingEmpty,
+  canHint,
+  onHint,
+  onReset,
+  onNext,
+}: GameActionsProps) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3">
+    <div className="flex w-full items-center justify-center gap-2.5 sm:gap-3">
       <Button
         variant="outline"
+        size="sm"
         onClick={onHint}
-        className="min-h-11 min-w-[5rem] rounded-xl border-sage/50 bg-white text-foreground hover:bg-sage/20"
+        disabled={!canHint}
+        className="relative h-11 min-w-[5.5rem] flex-1 rounded-2xl border-2 border-amber-300 bg-white px-3 text-xs font-bold text-amber-800 hover:bg-amber-50 disabled:opacity-50 sm:flex-none sm:min-w-[6.5rem]"
       >
+        <Lightbulb className="mr-1 h-3.5 w-3.5" aria-hidden />
         Hint
+        {remainingEmpty > 0 && (
+          <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-600 px-1 text-[11px] font-bold text-white">
+            {remainingEmpty}
+            <span className="sr-only"> empty cells</span>
+          </span>
+        )}
       </Button>
+
       <Button
         variant="outline"
+        size="sm"
         onClick={onReset}
-        className="min-h-11 min-w-[5rem] rounded-xl border-sage/50 bg-white text-foreground hover:bg-sage/20"
+        className="h-11 min-w-[5.5rem] flex-1 rounded-2xl border-2 border-sky-300 bg-white px-3 text-xs font-bold text-sky-800 hover:bg-sky-50 sm:flex-none sm:min-w-[6.5rem]"
       >
+        <RotateCcw className="mr-1 h-3.5 w-3.5" aria-hidden />
         Reset
       </Button>
+
       <Button
         variant="outline"
-        onClick={onNewPuzzle}
-        className="min-h-11 min-w-[5rem] rounded-xl border-sage/50 bg-white text-foreground hover:bg-sage/20"
+        size="sm"
+        onClick={onNext}
+        className="h-11 min-w-[5.5rem] flex-1 rounded-2xl border-2 border-emerald-400 bg-white px-3 text-xs font-bold text-emerald-800 hover:bg-emerald-50 sm:flex-none sm:min-w-[6.5rem]"
       >
-        New Puzzle
+        Next
+        <ChevronsRight className="ml-0.5 h-3.5 w-3.5" aria-hidden />
       </Button>
     </div>
   );

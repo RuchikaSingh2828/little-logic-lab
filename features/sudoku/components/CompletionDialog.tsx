@@ -12,12 +12,15 @@ import {
 
 interface CompletionDialogProps {
   open: boolean;
+  /** e.g. "4×4 Medium" — shown when leveling up */
+  nextLevelLabel: string | null;
   onTryAnother: () => void;
   onFinish: () => void;
 }
 
 export function CompletionDialog({
   open,
+  nextLevelLabel,
   onTryAnother,
   onFinish,
 }: CompletionDialogProps) {
@@ -26,40 +29,47 @@ export function CompletionDialog({
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent
-        className="max-w-sm rounded-3xl border-sage/30 bg-cream"
         showCloseButton={false}
+        overlayClassName="bg-black/55 supports-backdrop-filter:backdrop-blur-md"
+        className="max-w-sm rounded-3xl border border-white/20 bg-[#1a2332]/75 p-6 text-white shadow-[0_16px_48px_rgba(0,0,0,0.35)] ring-1 ring-white/15 backdrop-blur-xl"
       >
         <DialogHeader className="text-center">
-          <DialogTitle className="text-2xl font-semibold text-foreground">
+          <DialogTitle className="text-2xl font-semibold text-white">
             🌱 Great work today.
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Puzzle completed successfully
+            {nextLevelLabel
+              ? `Advancing to ${nextLevelLabel}`
+              : "Puzzle completed successfully"}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 text-center text-base text-foreground">
-          <p>You practiced:</p>
+        <div className="space-y-4 text-center text-base text-white">
+          {nextLevelLabel ? (
+            <p className="text-white/90">
+              You’re ready for the next level:{" "}
+              <span className="font-semibold text-white">{nextLevelLabel}</span>
+            </p>
+          ) : null}
+          <p className="text-white/90">You practiced:</p>
           <ul className="space-y-2 text-left">
-            <li className="flex items-center gap-2">
-              <span className="text-sage">✓</span> Pattern Recognition
+            <li className="flex items-center gap-2 text-white">
+              <span className="text-[#65B741]">✓</span> Pattern Recognition
             </li>
-            <li className="flex items-center gap-2">
-              <span className="text-sage">✓</span> Logical Thinking
+            <li className="flex items-center gap-2 text-white">
+              <span className="text-[#65B741]">✓</span> Logical Thinking
             </li>
-            <li className="flex items-center gap-2">
-              <span className="text-sage">✓</span> Focus
+            <li className="flex items-center gap-2 text-white">
+              <span className="text-[#65B741]">✓</span> Focus
             </li>
           </ul>
-          <p className="text-muted-foreground">
-            Would you like another puzzle?
-          </p>
+          <p className="text-white/70">Would you like another puzzle?</p>
         </div>
 
         <div className="mt-2 flex flex-col gap-3">
           <Button
             onClick={onTryAnother}
-            className="min-h-12 rounded-xl bg-sky text-foreground hover:bg-sky/80"
+            className="min-h-12 rounded-xl bg-[#65B741] text-white hover:bg-[#57a338]"
           >
             Try Another Puzzle
           </Button>
@@ -69,7 +79,7 @@ export function CompletionDialog({
               onFinish();
               router.push("/");
             }}
-            className="min-h-12 rounded-xl border-sage/50 bg-white hover:bg-sage/20"
+            className="min-h-12 rounded-xl border-white/35 bg-white/10 text-white hover:bg-white/20 hover:text-white"
           >
             Finish For Today
           </Button>

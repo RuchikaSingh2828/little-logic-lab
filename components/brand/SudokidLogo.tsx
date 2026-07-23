@@ -103,7 +103,7 @@ function Wordmark({ className }: { className?: string }) {
       )}
     >
       <span style={{ color: "#2D3748" }}>sudo</span>
-      <span style={{ color: "#65B741" }}>kid</span>
+      <span style={{ color: "#2F6B1F" }}>kid</span>
     </span>
   );
 }

@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   DndContext,
-  DragEndEvent,
+  type DragEndEvent,
+  type DragStartEvent,
   DragOverlay,
   PointerSensor,
   TouchSensor,
@@ -16,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { SUDOKU_MODE_CONFIG } from "../config/sudokuModes";
 import { CompletionDialog } from "./CompletionDialog";
 import { FeedbackToast } from "./FeedbackToast";
+import { GameActions } from "./GameActions";
 import { GameStatusBar } from "./GameStatusBar";
 import { HintDialog } from "./HintDialog";
 import { PictureCard } from "./PictureCard";
@@ -23,13 +26,17 @@ import { PieceTray } from "./PieceTray";
 import { PuzzleGrid } from "./PuzzleGrid";
 import { ResetDialog } from "./ResetDialog";
 import { SceneFooter } from "./SceneFooter";
-import { SudokuLogo } from "./SudokuLogo";
+import { SudokidLogo } from "@/components/brand/SudokidLogo";
 import { useSudokuGame } from "../hooks/useSudokuGame";
-import { fireCelebrationConfetti } from "../lib/confetti";
-import { playCorrectSound, playWrongSound } from "../lib/sounds";
+import {
+  playCelebrationSound,
+  playCorrectSound,
+  playWrongSound,
+} from "../lib/sounds";
 import { trackSessionMinute } from "../lib/sessionStorage";
 import type { PlacementResult } from "../types/placement.types";
 import type { Difficulty, GridSize, Puzzle, Symbol, SudokuMode } from "../types/sudoku.types";
+import { PuzzleBreadcrumbs } from "./PuzzleBreadcrumbs";
 
 interface SudokuScreenProps {
   mode: SudokuMode;
@@ -44,8 +51,8 @@ function parseCellId(id: string): { row: number; col: number } | null {
   return { row: parseInt(match[1], 10), col: parseInt(match[2], 10) };
 }
 
-function parseTrayIndex(id: string): number | null {
-  const match = id.match(/^tray-piece-(\d+)$/);
+function parseTrayGroupIndex(id: string): number | null {
+  const match = id.match(/^tray-group-(\d+)$/);
   if (!match) return null;
   return parseInt(match[1], 10);
 }
@@ -56,17 +63,20 @@ export function SudokuScreen({
   difficulty,
   initialPuzzle,
 }: SudokuScreenProps) {
+  const router = useRouter();
   const modeConfig = SUDOKU_MODE_CONFIG[mode];
   const {
     puzzle,
     board,
-    tray,
+    trayGroups,
     placedCount,
     totalToPlace,
     feedback,
     selectedPiece,
     isCelebrating,
     showCompletion,
+    advanceLabel,
+    pendingAdvance,
     canHint,
     placeSymbol,
     removeSymbol,
@@ -75,6 +85,7 @@ export function SudokuScreen({
     newPuzzle,
     selectPiece,
     dismissCompletion,
+    acceptAdvance,
     setFeedback,
   } = useSudokuGame(initialPuzzle);
 
@@ -87,13 +98,16 @@ export function SudokuScreen({
   const [showHintDialog, setShowHintDialog] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const soundEnabledRef = useRef(soundEnabled);
 
   const remainingEmpty = totalToPlace - placedCount;
+  const difficultyLabel =
+    difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+  const pageHeading = `${modeConfig.title} ${size}×${size} — ${difficultyLabel}`;
+
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
 
   useEffect(() => {
     const stored = localStorage.getItem("lll_sound_enabled");
@@ -106,9 +120,11 @@ export function SudokuScreen({
   }, []);
 
   useEffect(() => {
-    if (isCelebrating) {
+    if (!isCelebrating) return;
+    void import("../lib/confetti").then(({ fireCelebrationConfetti }) => {
       fireCelebrationConfetti();
-    }
+    });
+    if (soundEnabledRef.current) playCelebrationSound();
   }, [isCelebrating]);
 
   useEffect(() => {
@@ -176,15 +192,17 @@ export function SudokuScreen({
       const draggedSymbol =
         (active.data.current?.symbol as Symbol | undefined) ??
         (() => {
-          const trayIndex = parseTrayIndex(String(active.id));
-          return trayIndex !== null ? tray[trayIndex] : undefined;
+          const groupIndex = parseTrayGroupIndex(String(active.id));
+          return groupIndex !== null
+            ? trayGroups[groupIndex]?.symbol
+            : undefined;
         })();
 
       if (!draggedSymbol) return;
 
       tryPlaceSymbol(cell.row, cell.col, draggedSymbol);
     },
-    [tryPlaceSymbol, tray]
+    [tryPlaceSymbol, trayGroups]
   );
 
   const handleCellTap = useCallback(
@@ -204,98 +222,99 @@ export function SudokuScreen({
   );
 
   const handleTryAnother = () => {
-    dismissCompletion();
-    newPuzzle();
+    if (pendingAdvance) {
+      const { size: nextSize, difficulty: nextDifficulty } = pendingAdvance;
+      dismissCompletion();
+      router.push(`/sudoku/${mode}/${nextSize}/${nextDifficulty}`);
+      return;
+    }
+    acceptAdvance();
   };
 
   const handleReset = () => {
     reset();
   };
 
-  if (!isMounted) {
-    return (
-      <div className="flex min-h-full flex-col overflow-x-hidden bg-gradient-to-b from-[#FFFBEB] via-[#FEF9EE] to-[#ECFDF5]">
-        <div className="mx-auto flex min-h-full w-full max-w-lg flex-1 flex-col items-center justify-center px-4 py-12">
-          <p className="text-sm font-medium text-emerald-700">Loading puzzle…</p>
-        </div>
-      </div>
-    );
-  }
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const symbolFromData = event.active.data.current?.symbol as
+        | Symbol
+        | undefined;
+      if (symbolFromData) {
+        setActiveDragSymbol(symbolFromData);
+        return;
+      }
+
+      const groupIndex = parseTrayGroupIndex(String(event.active.id));
+      if (groupIndex !== null) {
+        setActiveDragSymbol(trayGroups[groupIndex]?.symbol ?? null);
+      }
+    },
+    [trayGroups]
+  );
 
   return (
     <DndContext
       sensors={sensors}
-      onDragStart={(event) => {
-        const symbolFromData = event.active.data.current?.symbol as
-          | Symbol
-          | undefined;
-        if (symbolFromData) {
-          setActiveDragSymbol(symbolFromData);
-          return;
-        }
-
-        const trayIndex = parseTrayIndex(String(event.active.id));
-        if (trayIndex !== null) {
-          setActiveDragSymbol(tray[trayIndex] ?? null);
-        }
-      }}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveDragSymbol(null)}
     >
       <div className="relative flex min-h-full flex-col overflow-x-hidden bg-gradient-to-b from-[#FFFBEB] via-[#FEF9EE] to-[#ECFDF5]">
         <div className="relative mx-auto flex min-h-full w-full max-w-lg flex-1 flex-col overflow-x-hidden px-4 pb-0 pt-2 sm:px-5 sm:pt-3">
-          <header className="mb-2">
-            <div className="flex items-start gap-2">
+          <header className="mb-1.5">
+            <div className="flex items-center gap-2">
               <Link href="/" className="shrink-0">
                 <Button
                   size="icon"
                   variant="outline"
-                  className="h-10 w-10 rounded-full border-0 bg-white text-emerald-600 shadow-md hover:bg-white/90"
+                  className="h-9 w-9 rounded-full border-0 bg-white text-emerald-600 shadow-sm hover:bg-white/90"
                   aria-label="Back to home"
                 >
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-4 w-4" />
                 </Button>
               </Link>
 
               <div className="min-w-0 flex-1 text-center">
-                <h1 className="flex items-center justify-center gap-1.5 text-lg font-bold leading-tight text-amber-950 sm:text-xl">
-                  <SudokuLogo className="h-5 w-5 sm:h-6 sm:w-6" />
-                  {modeConfig.title}
-                  <SudokuLogo className="h-5 w-5 sm:h-6 sm:w-6" />
+                <h1 className="flex items-center justify-center gap-1.5 text-base font-bold leading-tight text-[#5C4033] sm:text-lg">
+                  <SudokidLogo variant="icon" className="h-5 w-5 shrink-0" />
+                  <span className="truncate">{pageHeading}</span>
                 </h1>
-                <p className="mt-0.5 px-1 text-xs leading-snug text-amber-900/65 sm:text-sm">
-                  {modeConfig.instructions}
-                </p>
               </div>
 
               <Button
                 size="icon"
                 onClick={toggleSound}
-                className="h-10 w-10 shrink-0 rounded-full border-0 bg-violet-400 text-white shadow-md hover:bg-violet-500"
+                className="h-9 w-9 shrink-0 rounded-full border-0 bg-violet-400 text-white shadow-sm hover:bg-violet-500"
                 aria-label={soundEnabled ? "Turn sound off" : "Turn sound on"}
                 aria-pressed={soundEnabled}
               >
                 {soundEnabled ? (
-                  <Volume2 className="h-5 w-5" />
+                  <Volume2 className="h-4 w-4" />
                 ) : (
-                  <VolumeX className="h-5 w-5" />
+                  <VolumeX className="h-4 w-4" />
                 )}
               </Button>
             </div>
+            <PuzzleBreadcrumbs
+              mode={mode}
+              size={size}
+              difficulty={difficulty}
+              className="mt-2"
+            />
+            <p className="mt-1.5 text-center text-sm leading-snug text-[#4B5563]">
+              {modeConfig.instructions}
+            </p>
           </header>
 
           <GameStatusBar
             filledCount={placedCount}
             totalEmpty={totalToPlace}
-            gridSize={size}
-            difficulty={difficulty}
-            remainingEmpty={remainingEmpty}
-            canHint={canHint}
-            onHintClick={() => setShowHintDialog(true)}
-            onResetClick={() => setShowResetDialog(true)}
+            gridSize={puzzle.size}
+            difficulty={puzzle.difficulty}
           />
 
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 py-1.5">
+          <div className="flex flex-1 flex-col items-center justify-center gap-2.5 py-1">
             <PuzzleGrid
               board={board}
               givens={puzzle.givens}
@@ -307,9 +326,17 @@ export function SudokuScreen({
             />
 
             <PieceTray
-              pieces={tray}
+              groups={trayGroups}
               selectedPiece={selectedPiece}
               onPieceTap={handlePieceTap}
+            />
+
+            <GameActions
+              remainingEmpty={remainingEmpty}
+              canHint={canHint}
+              onHint={() => setShowHintDialog(true)}
+              onReset={() => setShowResetDialog(true)}
+              onNext={newPuzzle}
             />
           </div>
 
@@ -343,6 +370,7 @@ export function SudokuScreen({
 
       <CompletionDialog
         open={showCompletion}
+        nextLevelLabel={advanceLabel}
         onTryAnother={handleTryAnother}
         onFinish={dismissCompletion}
       />
